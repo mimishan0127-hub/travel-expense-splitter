@@ -10,31 +10,46 @@ from datetime import datetime
 # 頁面標題與佈局
 st.set_page_config(page_title="旅遊即時分帳系統", page_icon="✈️", layout="wide")
 
-# ==================== 5 種精選質感配色 ====================
+# ==================== 5 種精緻質感配色（主色按鈕 + 同色系柔霧標籤） ====================
 THEMES = {
     "🌿 莫蘭迪鼠尾草綠": {
         "primary": "#4A6B5D",
         "hover": "#385246",
+        "tag_bg": "#DCE7E1",
+        "tag_border": "#B9CEC2",
+        "tag_text": "#243E33",
         "light": "rgba(74, 107, 93, 0.15)"
     },
     "🍂 暖陽焦糖陶土": {
         "primary": "#C86D51",
         "hover": "#A5543A",
+        "tag_bg": "#F8E7E1",
+        "tag_border": "#E6C5BA",
+        "tag_text": "#753522",
         "light": "rgba(200, 109, 81, 0.15)"
     },
     "🌊 深海暮靄靛藍": {
         "primary": "#2E5B82",
         "hover": "#1F3E5A",
+        "tag_bg": "#DCE8F2",
+        "tag_border": "#B8D0E5",
+        "tag_text": "#163755",
         "light": "rgba(46, 91, 130, 0.15)"
     },
     "🌸 霧面煙燻胭粉": {
         "primary": "#B05A6F",
         "hover": "#924456",
+        "tag_bg": "#F9E6EB",
+        "tag_border": "#E8C1CB",
+        "tag_text": "#692634",
         "light": "rgba(176, 90, 111, 0.15)"
     },
     "🌑 黑曜玄武岩灰": {
         "primary": "#2D3139",
         "hover": "#1A1D23",
+        "tag_bg": "#E5E8EB",
+        "tag_border": "#CCD1D7",
+        "tag_text": "#1C2025",
         "light": "rgba(45, 49, 57, 0.15)"
     }
 }
@@ -45,16 +60,16 @@ if "theme_name" not in st.session_state:
 
 current_theme = THEMES[st.session_state["theme_name"]]
 
-# 注入 CSS：全面連動按鈕、分頁標籤、懸停外框與【人名標籤】
+# 注入最高權重 CSS：徹底替換按鈕與人名標籤樣式
 st.markdown(f"""
 <style>
 /* 1. 主按鈕（包含普通 primary 與 form_submit_button） */
-button[data-testid*="primary"],
-button[data-testid="baseButton-primary"],
-button[data-testid="stBaseButton-primary"],
-button[kind="primary"],
-.stButton > button[kind="primary"],
-div[data-testid="stFormSubmitButton"] > button {{
+html body button[data-testid*="primary"],
+html body button[data-testid="baseButton-primary"],
+html body button[data-testid="stBaseButton-primary"],
+html body button[kind="primary"],
+html body .stButton > button[kind="primary"],
+html body div[data-testid="stFormSubmitButton"] > button {{
     background-color: {current_theme['primary']} !important;
     border: 1px solid {current_theme['primary']} !important;
     color: #ffffff !important;
@@ -63,59 +78,68 @@ div[data-testid="stFormSubmitButton"] > button {{
     transition: all 0.2s ease-in-out;
 }}
 
-button[data-testid*="primary"]:hover,
-button[data-testid="baseButton-primary"]:hover,
-button[data-testid="stBaseButton-primary"]:hover,
-button[kind="primary"]:hover,
-.stButton > button[kind="primary"]:hover,
-div[data-testid="stFormSubmitButton"] > button:hover {{
+html body button[data-testid*="primary"]:hover,
+html body button[data-testid="baseButton-primary"]:hover,
+html body button[data-testid="stBaseButton-primary"]:hover,
+html body button[kind="primary"]:hover,
+html body .stButton > button[kind="primary"]:hover,
+html body div[data-testid="stFormSubmitButton"] > button:hover {{
     background-color: {current_theme['hover']} !important;
     border-color: {current_theme['hover']} !important;
     color: #ffffff !important;
 }}
 
 /* 2. 次要按鈕樣式 */
-button[data-testid*="secondary"],
-button[data-testid="baseButton-secondary"],
-button[data-testid="stBaseButton-secondary"] {{
+html body button[data-testid*="secondary"],
+html body button[data-testid="baseButton-secondary"],
+html body button[data-testid="stBaseButton-secondary"] {{
     border-radius: 8px !important;
 }}
 
 /* 3. 分頁籤選取時的底線與文字顏色 */
-button[data-testid="stTab"][aria-selected="true"] {{
+html body button[data-testid="stTab"][aria-selected="true"] {{
     color: {current_theme['primary']} !important;
     border-bottom: 2px solid {current_theme['primary']} !important;
 }}
 
 /* 4. 卡片懸停高亮邊框 */
-div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
+html body div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
     border-color: {current_theme['primary']} !important;
     box-shadow: 0 2px 8px {current_theme['light']} !important;
     transition: all 0.2s ease-in-out;
 }}
 
-/* 5. 人名標籤 (st.multiselect tags) 同步換色 */
-span[data-baseweb="tag"],
-div[data-baseweb="tag"],
-div[data-testid="stMultiSelect"] span[data-baseweb="tag"] {{
-    background-color: {current_theme['primary']} !important;
+/* 5. 人名標籤 (st.multiselect tags)：同風格淡雅色、深色文字，不撞色按鈕 */
+html body div[data-testid="stMultiSelect"] [data-baseweb="tag"],
+html body div[data-testid="stMultiSelect"] span[data-baseweb="tag"],
+html body [data-baseweb="tag"] {{
+    background-color: {current_theme['tag_bg']} !important;
+    background: {current_theme['tag_bg']} !important;
+    border: 1px solid {current_theme['tag_border']} !important;
     border-radius: 6px !important;
+    padding: 2px 6px !important;
 }}
-span[data-baseweb="tag"] span,
-div[data-baseweb="tag"] span {{
-    color: #ffffff !important;
-    font-weight: 500 !important;
+
+/* 人名標籤文字 */
+html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] span,
+html body [data-baseweb="tag"] span {{
+    color: {current_theme['tag_text']} !important;
+    font-weight: 600 !important;
 }}
-span[data-baseweb="tag"] svg,
-div[data-baseweb="tag"] svg,
-span[data-baseweb="tag"] svg path,
-div[data-baseweb="tag"] svg path {{
-    fill: #ffffff !important;
-    color: #ffffff !important;
+
+/* 人名標籤刪除叉叉圖示 (X) */
+html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] svg,
+html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] path,
+html body [data-baseweb="tag"] svg,
+html body [data-baseweb="tag"] path {{
+    fill: {current_theme['tag_text']} !important;
+    stroke: {current_theme['tag_text']} !important;
+    color: {current_theme['tag_text']} !important;
 }}
-span[data-baseweb="tag"] svg:hover,
-div[data-baseweb="tag"] svg:hover {{
-    opacity: 0.8 !important;
+
+/* 懸停於叉叉時稍微透明回饋 */
+html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] svg:hover {{
+    opacity: 0.65 !important;
 }}
 
 /* 全域主色系變數 */
@@ -334,7 +358,7 @@ with tab1:
                         st.success("記帳成功！")
                         st.rerun()
 
-    # 區塊 2：明細清單卡片（恢復原生表格與下方修改/刪除收合區塊）
+    # 區塊 2：明細清單卡片
     with st.container(border=True):
         st.markdown("#### 📋 帳目記錄清單")
         if expenses:
