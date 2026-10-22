@@ -1,7 +1,6 @@
 import streamlit as st
 from supabase import create_client, Client
 import pandas as pd
-from collections import defaultdict
 
 # 頁面標題與佈局
 st.set_page_config(page_title="旅遊即時分帳系統", page_icon="✈️", layout="wide")
@@ -31,6 +30,18 @@ if not trip_code:
     st.warning("請先輸入行程代碼以載入資料。")
     st.stop()
 
+# 輔助函式：時間轉換為台灣時間字串
+def format_time(ts_str):
+    if not ts_str:
+        return ""
+    try:
+        dt = pd.to_datetime(ts_str)
+        if dt.tzinfo is None:
+            dt = dt.tz_localize("UTC")
+        return dt.tz_convert("Asia/Taipei").strftime("%Y-%m-%d %H:%M")
+    except Exception:
+        return str(ts_str)[:16].replace("T", " ")
+
 # 讀取成員資料
 def get_members(code):
     res = supabase.table("members").select("name").eq("trip_code", code).execute()
@@ -44,34 +55,48 @@ def get_expenses(code):
 members = get_members(trip_code)
 expenses = get_expenses(trip_code)
 
-# 側邊欄：成員管理
+# ==================== 側邊欄：成員管理（新增 & 刪除） ====================
 with st.sidebar:
-    st.header("👥 行程成員名單")
-    st.write(f"目前代碼：`{trip_code}`")
-    new_member = st.text_input("新增成員姓名")
-    if st.button("➕ 新增成員"):
+    st.header("👥 成員名單管理")
+    st.write(f"目前行程代碼：`{trip_code}`")
+    
+    # 1. 新增成員
+    st.subheader("➕ 新增成員")
+    new_member = st.text_input("成員姓名", key="add_member_input")
+    if st.button("確認新增"):
         if new_member.strip() and new_member.strip() not in members:
             supabase.table("members").insert({"trip_code": trip_code, "name": new_member.strip()}).execute()
             st.success(f"已加入：{new_member}")
             st.rerun()
         elif new_member.strip() in members:
             st.warning("此成員已存在！")
-    
+        else:
+            st.error("姓名不能為空白！")
+
+    st.divider()
+
+    # 2. 目前成員與刪除成員
+    st.subheader("📋 目前成員")
     if members:
-        st.write("目前成員：", ", ".join(members))
+        st.write("、".join(members))
+        member_to_delete = st.selectbox("選擇要刪除的成員：", options=members)
+        if st.button("🗑️ 刪除該成員", type="secondary"):
+            supabase.table("members").delete().eq("trip_code", trip_code).eq("name", member_to_delete).execute()
+            st.success(f"已刪除成員：{member_to_delete}")
+            st.rerun()
     else:
         st.info("尚無成員，請先新增成員才能開始記帳！")
 
-# 分頁籤：記帳與紀錄、個人帳務分析、整趟結算建議
-tab1, tab2, tab3 = st.tabs(["📝 新增記帳與明細", "👤 個人即時帳務", "📊 最終結算建議"])
+# 分頁籤
+tab1, tab2, tab3 = st.tabs(["📝 記帳管理與明細", "👤 個人即時帳務", "📊 最終結算建議"])
 
-# ==================== Tab 1: 新增記帳與明細 ====================
+# ==================== Tab 1: 記帳管理與明細 ====================
 with tab1:
     st.subheader("新增一筆消費")
     if len(members) < 1:
         st.warning("請先在左側選單新增至少一位成員！")
     else:
-        with st.form("expense_form", clear_on_submit=True):
+        with st.form("add_expense_form", clear_on_submit=True):
             col1, col2 = st.columns(2)
             with col1:
                 item_name = st.text_input("品項名稱（如：第一天晚餐、包車費）")
@@ -104,126 +129,11 @@ with tab1:
         for e in expenses:
             exp_data.append({
                 "ID": e["id"],
+                "記帳時間": format_time(e.get("created_at")),
                 "消費品項": e["item"],
                 "總金額": e["amount"],
                 "代墊人": e["paid_by"],
                 "分攤對象": e["split_members"]
             })
         df_exp = pd.DataFrame(exp_data)
-        st.dataframe(df_exp.drop(columns=["ID"]), use_container_width=True)
-        
-        # 刪除功能
-        del_id = st.selectbox("若需刪除記帳，請選取項目 ID：", options=[e["id"] for e in expenses], format_func=lambda x: f"ID {x}: {[e['item'] for e in expenses if e['id']==x][0]}")
-        if st.button("🗑️ 刪除該筆帳目"):
-            supabase.table("expenses").delete().eq("id", del_id).execute()
-            st.success("已成功刪除！")
-            st.rerun()
-    else:
-        st.info("目前還沒有任何消費記錄。")
-
-# ==================== Tab 2: 個人即時帳務 ====================
-with tab2:
-    st.subheader("👤 查看個人的即時帳務狀況")
-    if not members:
-        st.info("請先新增成員。")
-    else:
-        selected_user = st.selectbox("請選擇你是誰：", options=members)
-        
-        # 計算帳務
-        total_paid_by_user = 0.0      # 自己墊付總額
-        total_consumed_by_user = 0.0  # 自己應付總額（分攤所得）
-        user_detailed_expenses = []   # 自己參與的明細
-
-        for e in expenses:
-            amt = float(e["amount"])
-            split_list = [m.strip() for m in e["split_members"].split(",") if m.strip()]
-            share = amt / len(split_list) if split_list else 0
-
-            # 如果我是付款人
-            if e["paid_by"] == selected_user:
-                total_paid_by_user += amt
-
-            # 如果我是這筆消費的分攤人之一
-            if selected_user in split_list:
-                total_consumed_by_user += share
-                user_detailed_expenses.append({
-                    "品項": e["item"],
-                    "整筆總額": amt,
-                    "分攤人數": len(split_list),
-                    "我的負擔份額": round(share, 2),
-                    "由誰代墊": e["paid_by"]
-                })
-
-        net_balance = total_paid_by_user - total_consumed_by_user
-
-        c1, c2, c3 = st.columns(3)
-        c1.metric("💰 我先代墊的全額總支出", f"${total_paid_by_user:,.2f}")
-        c2.metric("🍽️ 我實際個人的總消費", f"${total_consumed_by_user:,.2f}")
-        if net_balance >= 0:
-            c3.metric("🟢 我目前應收回（淨額）", f"+${net_balance:,.2f}")
-        else:
-            c3.metric("🔴 我目前應補繳（淨額）", f"-${abs(net_balance):,.2f}")
-
-        st.markdown("#### 🔍 與我有關係的消費清單：")
-        if user_detailed_expenses:
-            st.dataframe(pd.DataFrame(user_detailed_expenses), use_container_width=True)
-        else:
-            st.info("目前尚無與您相關的消費。")
-
-# ==================== Tab 3: 最終結算建議 ====================
-with tab3:
-    st.subheader("📊 結算總覽與最簡還款指引")
-    if not expenses or not members:
-        st.info("資料不足，尚無法結算。")
-    else:
-        # 計算所有人淨額：paid - consumed
-        balances = {m: 0.0 for m in members}
-        for e in expenses:
-            amt = float(e["amount"])
-            split_list = [m.strip() for m in e["split_members"].split(",") if m.strip()]
-            share = amt / len(split_list) if split_list else 0
-            
-            balances[e["paid_by"]] += amt
-            for sm in split_list:
-                if sm in balances:
-                    balances[sm] -= share
-
-        # 顯示每個人淨額
-        df_bal = pd.DataFrame([
-            {"成員": k, "應收 / 應付 (淨額)": f"+{round(v, 2)}" if v >= 0 else f"{round(v, 2)}"}
-            for k, v in balances.items()
-        ])
-        st.dataframe(df_bal, use_container_width=True)
-
-        st.markdown("#### 💡 最簡轉帳還款方案（誰該給誰多少錢）：")
-        # 簡易平帳演算法
-        debtors = []   # 負數：該付錢的人
-        creditors = [] # 正數：該收錢的人
-        for m, b in balances.items():
-            if round(b, 2) < -0.01:
-                debtors.append([m, -b])
-            elif round(b, 2) > 0.01:
-                creditors.append([m, b])
-
-        settlements = []
-        i, j = 0, 0
-        while i < len(debtors) and j < len(creditors):
-            deb_name, deb_amt = debtors[i]
-            cred_name, cred_amt = creditors[j]
-            trans_amt = min(deb_amt, cred_amt)
-            
-            settlements.append(f"👉 **{deb_name}** 應給 **{cred_name}**：`${trans_amt:,.2f}` 元")
-            
-            debtors[i][1] -= trans_amt
-            creditors[j][1] -= trans_amt
-            
-            if round(debtors[i][1], 2) <= 0.01:
-                i += 1
-            if round(creditors[j][1], 2) <= 0.01:
-                j += 1
-
-        if settlements:
-            for s in settlements:
-                st.markdown(s)
-        else:
-            st.success("🎉 目前帳目已完全平衡，大家互不相欠！")
+        st.dataframe(df
