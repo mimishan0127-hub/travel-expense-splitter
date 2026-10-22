@@ -10,15 +10,90 @@ from datetime import datetime
 # 頁面標題與佈局
 st.set_page_config(page_title="旅遊即時分帳系統", page_icon="✈️", layout="wide")
 
-# 加入滑鼠懸停 (Hover) 高亮卡片的自訂樣式
-st.markdown("""
-<style>
-/* 電腦端滑鼠滑過卡片時產生高亮邊框與陰影，提升視覺對焦 */
-div[data-testid="stVerticalBlockBorderWrapper"]:hover {
-    border-color: #ff4b4b !important;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-    transition: all 0.2s ease-in-out;
+# ==================== 5 種質感配色定義 ====================
+THEMES = {
+    "🌿 莫蘭迪鼠尾草綠": {
+        "primary": "#4A6B5D",
+        "hover": "#3B574A",
+        "light": "#EBF2EE"
+    },
+    "🍂 暖陽焦糖陶土": {
+        "primary": "#C86D51",
+        "hover": "#A8543A",
+        "light": "#FAF0EC"
+    },
+    "🌊 深海暮靄靛藍": {
+        "primary": "#3B5A75",
+        "hover": "#2C445A",
+        "light": "#EDF3F7"
+    },
+    "🌸 霧面煙燻胭粉": {
+        "primary": "#B35D67",
+        "hover": "#964650",
+        "light": "#F8ECEE"
+    },
+    "🌑 黑曜玄武岩灰": {
+        "primary": "#2C302E",
+        "hover": "#1A1C1B",
+        "light": "#EFEFEF"
+    }
 }
+
+# 預設主題
+if "selected_theme" not in st.session_state:
+    st.session_state["selected_theme"] = "🌿 莫蘭迪鼠尾草綠"
+
+current_theme = THEMES[st.session_state["selected_theme"]]
+
+# 動態注入自訂質感 CSS
+st.markdown(f"""
+<style>
+/* 主按鈕顏色與圓角 */
+button[kind="primary"], .stButton > button[kind="primary"] {{
+    background-color: {current_theme['primary']} !important;
+    border-color: {current_theme['primary']} !important;
+    color: white !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease-in-out;
+}}
+button[kind="primary"]:hover {{
+    background-color: {current_theme['hover']} !important;
+    border-color: {current_theme['hover']} !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}}
+
+/* 次要按鈕樣式 */
+button[kind="secondary"], .stButton > button[kind="secondary"] {{
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+}}
+
+/* 滑鼠懸停卡片外框高亮 */
+div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
+    border-color: {current_theme['primary']} !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.2s ease-in-out;
+}}
+
+/* 緊湊化表單與輸入框留白（縮減高度） */
+div[data-testid="stForm"] {{
+    padding: 0.6rem 0.9rem !important;
+    border-radius: 10px !important;
+}}
+div[data-testid="stForm"] .stTextInput, 
+div[data-testid="stForm"] .stNumberInput, 
+div[data-testid="stForm"] .stSelectbox, 
+div[data-testid="stForm"] .stMultiSelect {{
+    margin-bottom: -0.3rem !important;
+}}
+
+/* 標籤小巧化 */
+div[data-testid="stForm"] label {{
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: #4b5563 !important;
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -47,28 +122,23 @@ def format_time(ts_str):
     except Exception:
         return str(ts_str)[:16].replace("T", " ")
 
-# 讀取成員資料
+# 讀取資料函式
 def get_members(code):
     res = supabase.table("members").select("name").eq("trip_code", code).execute()
     return [r["name"] for r in res.data]
 
-# 讀取費用資料
 def get_expenses(code):
     res = supabase.table("expenses").select("*").eq("trip_code", code).order("id", desc=True).execute()
     return res.data
 
-# 抓取台灣銀行牌告匯率
+# 抓取台銀牌告匯率
 @st.cache_data(ttl=1800)
 def fetch_bot_rates():
     url = "https://rate.bot.com.tw/xrt/flcsv/0/day"
     target_currencies = {
-        "USD": "美金 (USD)",
-        "JPY": "日幣 (JPY)",
-        "THB": "泰銖 (THB)",
-        "KRW": "韓元 (KRW)",
-        "CNY": "人民幣 (CNY)"
+        "USD": "美金 (USD)", "JPY": "日幣 (JPY)", "THB": "泰銖 (THB)",
+        "KRW": "韓元 (KRW)", "CNY": "人民幣 (CNY)"
     }
-    
     rates = {
         "USD": {"name": "美金 (USD)", "cash_sell": 32.50, "spot_sell": 32.40},
         "JPY": {"name": "日幣 (JPY)", "cash_sell": 0.2150, "spot_sell": 0.2130},
@@ -77,12 +147,8 @@ def fetch_bot_rates():
         "CNY": {"name": "人民幣 (CNY)", "cash_sell": 4.5200, "spot_sell": 4.4900}
     }
     status = "備用參考匯率（離線）"
-
     try:
-        req = urllib.request.Request(
-            url,
-            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-        )
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=6) as response:
             content = response.read().decode("utf-8", errors="ignore")
             reader = csv.reader(io.StringIO(content))
@@ -97,12 +163,10 @@ def fetch_bot_rates():
                             return val if val > 0 else None
                         except Exception:
                             return None
-
                     cash_sell = parse_val(row[12])
                     spot_sell = parse_val(row[13])
                     c_val = cash_sell if cash_sell else spot_sell
                     s_val = spot_sell if spot_sell else cash_sell
-
                     if c_val:
                         rates[code] = {
                             "name": target_currencies[code],
@@ -112,16 +176,42 @@ def fetch_bot_rates():
             status = f"台灣銀行即時牌告（更新於 {datetime.now().strftime('%H:%M')}）"
     except Exception:
         status = "連線逾時，已使用備用匯率"
-
     return rates, status
 
-# 初始化當前操作狀態
+# 狀態管理
 if "edit_id" not in st.session_state:
     st.session_state["edit_id"] = None
 if "delete_id" not in st.session_state:
     st.session_state["delete_id"] = None
 
-# ==================== 頂部行程導航與狀態儀表板 ====================
+# ==================== 確保存檔後 100% 消失的回呼函式 (Callbacks) ====================
+def on_save_edit(exp_id):
+    item = st.session_state.get(f"edit_item_{exp_id}", "").strip()
+    amount = float(st.session_state.get(f"edit_amt_{exp_id}", 1.0))
+    paid_by = st.session_state.get(f"edit_paid_{exp_id}")
+    split_list = st.session_state.get(f"edit_split_{exp_id}", [])
+    
+    if item and split_list:
+        supabase.table("expenses").update({
+            "item": item,
+            "amount": amount,
+            "paid_by": paid_by,
+            "split_members": ",".join(split_list)
+        }).eq("id", exp_id).execute()
+        # 強制在重新渲染前重設狀態
+        st.session_state["edit_id"] = None
+
+def on_cancel_edit():
+    st.session_state["edit_id"] = None
+
+def on_confirm_delete(exp_id):
+    supabase.table("expenses").delete().eq("id", exp_id).execute()
+    st.session_state["delete_id"] = None
+
+def on_cancel_delete():
+    st.session_state["delete_id"] = None
+
+# ==================== 頂部行程導航與儀表板 ====================
 query_trip = st.query_params.get("trip", "okinawa_trip")
 
 with st.container(border=True):
@@ -151,21 +241,33 @@ with c_metric1:
 with c_metric2:
     st.metric("👥 成員總數", f"{len(members)} 位")
 with c_metric3:
-    st.metric("💵 全團總累積花費", f"${total_trip_expense:,.0f} 元")
+    st.metric("💵 全團總花費", f"${total_trip_expense:,.0f} 元")
 
 st.write("")
 
-# ==================== 側邊欄：成員管理 ====================
+# ==================== 側邊欄：配色與成員管理 ====================
 with st.sidebar:
-    st.markdown("### 👥 成員管理")
-    st.caption(f"目前行程：`{trip_code}`")
-
-    # 新增成員卡片
+    st.markdown("### 🎨 介面與成員管理")
+    
+    # 1. 質感配色自訂區塊
     with st.container(border=True):
-        st.markdown("**➕ 新增夥伴**")
+        st.markdown("**🎨 系統按鈕配色**")
+        chosen_theme = st.selectbox(
+            "選擇主題色調：",
+            options=list(THEMES.keys()),
+            index=list(THEMES.keys()).index(st.session_state["selected_theme"]),
+            label_visibility="collapsed"
+        )
+        if chosen_theme != st.session_state["selected_theme"]:
+            st.session_state["selected_theme"] = chosen_theme
+            st.rerun()
+
+    # 2. 新增成員卡片
+    with st.container(border=True):
+        st.markdown("**➕ 新增成員**")
         with st.form("add_member_form", clear_on_submit=True):
             new_member = st.text_input("姓名", placeholder="例如：小明")
-            add_btn = st.form_submit_button("確認加入", use_container_width=True)
+            add_btn = st.form_submit_button("確認加入", type="primary", use_container_width=True)
             if add_btn:
                 if new_member.strip() and new_member.strip() not in members:
                     supabase.table("members").insert({"trip_code": trip_code, "name": new_member.strip()}).execute()
@@ -176,20 +278,20 @@ with st.sidebar:
                 else:
                     st.error("姓名不能為空白！")
 
-    # 成員名單與刪除卡片
+    # 3. 現有成員名單與刪除
     with st.container(border=True):
-        st.markdown("**📋 現有成員清單**")
+        st.markdown("**📋 目前成員清單**")
         if members:
             st.info("、".join(members))
             member_to_delete = st.selectbox("選取要刪除的成員：", options=members)
-            if st.button("🗑️ 刪除成員", type="secondary", use_container_width=True):
+            if st.button("🗑️ 刪除該成員", type="secondary", use_container_width=True):
                 supabase.table("members").delete().eq("trip_code", trip_code).eq("name", member_to_delete).execute()
                 st.success(f"已刪除：{member_to_delete}")
                 st.rerun()
         else:
-            st.warning("尚未新增任何成員，請先在上方加入！")
+            st.warning("尚無成員，請在上方加入！")
 
-# ==================== 橫列功能分頁籤 ====================
+# ==================== 橫列功能選單 ====================
 tab1, tab2, tab3, tab4 = st.tabs([
     "📝 記帳明細管理",
     "👤 個人帳務分析",
@@ -208,9 +310,9 @@ with tab1:
             with st.form("add_expense_form", clear_on_submit=True):
                 col_name, col_price = st.columns(2)
                 with col_name:
-                    item_name = st.text_input("消費項目", placeholder="例如：第一天晚餐、藥妝店購物")
+                    item_name = st.text_input("消費項目", placeholder="例如：第一天晚餐、包車費")
                 with col_price:
-                    amount = st.number_input("金額 (NTD / 當地幣別)", min_value=1.0, step=50.0)
+                    amount = st.number_input("金額 (NTD / 結算幣別)", min_value=1.0, step=50.0)
 
                 col_payer, col_splitter = st.columns(2)
                 with col_payer:
@@ -235,64 +337,77 @@ with tab1:
                         st.success("記帳成功！")
                         st.rerun()
 
-    # 區塊 2：動態互動清單（取代原本呆板的靜態表格與下拉選單）
+    # 區塊 2：動態互動清單
     with st.container(border=True):
-        st.markdown("#### 📋 帳目記錄清單（點擊右側按鈕可直接修改或刪除）")
+        st.markdown("#### 📋 帳目記錄清單（點擊右側 ✏️ 可直接原地修改）")
         if expenses:
             for e in expenses:
-                # 判斷是否為正在編輯的項目
+                # 情況 A：正在行內編輯該筆（2x2 緊湊雙列佈局，大幅減少高度）
                 if st.session_state["edit_id"] == e["id"]:
                     with st.container(border=True):
-                        st.markdown(f"✏️ **正在修改項目：{e['item']}**")
+                        st.markdown(f"✏️ **修改帳目：{e['item']}**")
                         current_split = [m.strip() for m in e["split_members"].split(",") if m.strip() in members]
                         paid_idx = members.index(e["paid_by"]) if e["paid_by"] in members else 0
                         
                         with st.form(f"inline_edit_{e['id']}"):
-                            n_item = st.text_input("項目名稱", value=e["item"])
-                            n_amount = st.number_input("金額", min_value=1.0, value=float(e["amount"]), step=50.0)
-                            n_paid = st.selectbox("代墊人", options=members, index=paid_idx)
-                            n_split = st.multiselect("分攤名單", options=members, default=current_split)
+                            # 第 1 列：項目名稱 + 金額
+                            r1_col1, r1_col2 = st.columns([3, 2])
+                            with r1_col1:
+                                st.text_input("項目名稱", value=e["item"], key=f"edit_item_{e['id']}")
+                            with r1_col2:
+                                st.number_input("金額", min_value=1.0, value=float(e["amount"]), step=50.0, key=f"edit_amt_{e['id']}")
                             
+                            # 第 2 列：代墊人 + 分攤成員
+                            r2_col1, r2_col2 = st.columns([2, 3])
+                            with r2_col1:
+                                st.selectbox("代墊人", options=members, index=paid_idx, key=f"edit_paid_{e['id']}")
+                            with r2_col2:
+                                st.multiselect("分攤名單", options=members, default=current_split, key=f"edit_split_{e['id']}")
+                            
+                            # 第 3 列：按鈕
+                            st.write("")
                             c_sv, c_cl = st.columns(2)
                             with c_sv:
-                                if st.form_submit_button("💾 儲存更新", type="primary", use_container_width=True):
-                                    if n_item.strip() and n_split:
-                                        supabase.table("expenses").update({
-                                            "item": n_item.strip(),
-                                            "amount": n_amount,
-                                            "paid_by": n_paid,
-                                            "split_members": ",".join(n_split)
-                                        }).eq("id", e["id"]).execute()
-                                        st.session_state["edit_id"] = None
-                                        st.success("更新成功！")
-                                        st.rerun()
-                                    else:
-                                        st.error("項目與分攤名單不能為空！")
+                                st.form_submit_button(
+                                    "💾 儲存更新",
+                                    type="primary",
+                                    use_container_width=True,
+                                    on_click=on_save_edit,
+                                    args=(e["id"],)
+                                )
                             with c_cl:
-                                if st.form_submit_button("❌ 取消", use_container_width=True):
-                                    st.session_state["edit_id"] = None
-                                    st.rerun()
+                                st.form_submit_button(
+                                    "❌ 取消",
+                                    use_container_width=True,
+                                    on_click=on_cancel_edit
+                                )
 
-                # 判斷是否為正在確認刪除的項目
+                # 情況 B：正在確認刪除該筆
                 elif st.session_state["delete_id"] == e["id"]:
                     with st.container(border=True):
-                        st.warning(f"⚠️ 確定要刪除 **{e['item']}**（金額：${float(e['amount']):,.0f} 元）嗎？此動作無法復原！")
+                        st.warning(f"⚠️ 確定要刪除 **{e['item']}**（金額：${float(e['amount']):,.0f} 元）嗎？")
                         c_yes, c_no = st.columns(2)
                         with c_yes:
-                            if st.button("🗑️ 確認永久刪除", key=f"conf_del_{e['id']}", type="primary", use_container_width=True):
-                                supabase.table("expenses").delete().eq("id", e["id"]).execute()
-                                st.session_state["delete_id"] = None
-                                st.success("已成功刪除！")
-                                st.rerun()
+                            st.button(
+                                "🗑️ 確認永久刪除",
+                                key=f"conf_del_{e['id']}",
+                                type="primary",
+                                use_container_width=True,
+                                on_click=on_confirm_delete,
+                                args=(e["id"],)
+                            )
                         with c_no:
-                            if st.button("取消", key=f"cancel_del_{e['id']}", use_container_width=True):
-                                st.session_state["delete_id"] = None
-                                st.rerun()
+                            st.button(
+                                "取消",
+                                key=f"cancel_del_{e['id']}",
+                                use_container_width=True,
+                                on_click=on_cancel_delete
+                            )
 
-                # 平常顯示的交易記錄卡片（滑鼠滑過會自動高亮）
+                # 情況 C：平時正常顯示的卡片
                 else:
                     with st.container(border=True):
-                        col_info, col_price, col_actions = st.columns([4, 1.5, 1.2])
+                        col_info, col_price, col_actions = st.columns([4, 1.5, 1.1])
                         with col_info:
                             st.markdown(f"**{e['item']}**")
                             st.caption(f"🕒 {format_time(e.get('created_at'))} ｜ 墊付：**{e['paid_by']}** ｜ 分攤：{e['split_members']}")
@@ -301,12 +416,12 @@ with tab1:
                         with col_actions:
                             b1, b2 = st.columns(2)
                             with b1:
-                                if st.button("✏️", key=f"btn_edit_{e['id']}", help="修改此筆資料", use_container_width=True):
+                                if st.button("✏️", key=f"btn_edit_{e['id']}", help="修改此筆", use_container_width=True):
                                     st.session_state["edit_id"] = e["id"]
                                     st.session_state["delete_id"] = None
                                     st.rerun()
                             with b2:
-                                if st.button("🗑️", key=f"btn_del_{e['id']}", help="刪除此筆資料", use_container_width=True):
+                                if st.button("🗑️", key=f"btn_del_{e['id']}", help="刪除此筆", use_container_width=True):
                                     st.session_state["delete_id"] = e["id"]
                                     st.session_state["edit_id"] = None
                                     st.rerun()
@@ -440,15 +555,10 @@ with tab4:
         currency_rates_to_twd[code] = info["cash_sell"]
 
     currency_labels = {
-        "TWD": "新台幣 (TWD)",
-        "USD": "美金 (USD)",
-        "JPY": "日幣 (JPY)",
-        "THB": "泰銖 (THB)",
-        "KRW": "韓元 (KRW)",
-        "CNY": "人民幣 (CNY)"
+        "TWD": "新台幣 (TWD)", "USD": "美金 (USD)", "JPY": "日幣 (JPY)",
+        "THB": "泰銖 (THB)", "KRW": "韓元 (KRW)", "CNY": "人民幣 (CNY)"
     }
 
-    # 換算計算機卡片
     with st.container(border=True):
         st.markdown("#### 🔄 雙向即時匯率換算")
         col_amt, col_from, col_to = st.columns([2, 2, 2])
@@ -456,33 +566,19 @@ with tab4:
         with col_amt:
             input_amount = st.number_input("金額：", min_value=0.0, value=1000.0, step=100.0)
         with col_from:
-            from_cur = st.selectbox(
-                "幣別 (From)：",
-                options=list(currency_labels.keys()),
-                format_func=lambda x: currency_labels[x],
-                index=0
-            )
+            from_cur = st.selectbox("幣別 (From)：", options=list(currency_labels.keys()), format_func=lambda x: currency_labels[x], index=0)
         with col_to:
-            to_cur = st.selectbox(
-                "換算為 (To)：",
-                options=list(currency_labels.keys()),
-                format_func=lambda x: currency_labels[x],
-                index=2
-            )
+            to_cur = st.selectbox("換算為 (To)：", options=list(currency_labels.keys()), format_func=lambda x: currency_labels[x], index=2)
 
         twd_amount = input_amount * currency_rates_to_twd[from_cur]
         converted_amount = twd_amount / currency_rates_to_twd[to_cur]
 
-        st.success(
-            f"💰 **換算結果：** `{input_amount:,.2f}` {currency_labels[from_cur]} ≈ "
-            f"**`{converted_amount:,.2f}` {currency_labels[to_cur]}**"
-        )
+        st.success(f"💰 **換算結果：** `{input_amount:,.2f}` {currency_labels[from_cur]} ≈ **`{converted_amount:,.2f}` {currency_labels[to_cur]}**")
 
         if from_cur != to_cur:
             unit_rate = currency_rates_to_twd[from_cur] / currency_rates_to_twd[to_cur]
             st.caption(f"ℹ️ 參考匯率：1 {from_cur} ≈ {unit_rate:.4f} {to_cur}")
 
-    # 台灣銀行牌告資料卡片
     with st.container(border=True):
         st.markdown("#### 📋 台灣銀行牌告牌價")
         st.caption(f"📡 資料來源：{bot_status}")
