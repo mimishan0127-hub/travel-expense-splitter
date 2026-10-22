@@ -10,7 +10,7 @@ from datetime import datetime
 # 頁面標題與佈局
 st.set_page_config(page_title="旅遊即時分帳系統", page_icon="✈️", layout="wide")
 
-# ==================== 5 種精緻質感配色（主色按鈕 + 同色系柔霧標籤） ====================
+# ==================== 5 種精緻質感配色 ====================
 THEMES = {
     "🌿 莫蘭迪鼠尾草綠": {
         "primary": "#4A6B5D",
@@ -54,16 +54,15 @@ THEMES = {
     }
 }
 
-# 確保主題狀態初始化
 if "theme_name" not in st.session_state:
     st.session_state["theme_name"] = "🌿 莫蘭迪鼠尾草綠"
 
 current_theme = THEMES[st.session_state["theme_name"]]
 
-# 注入最高權重 CSS：全面覆蓋按鈕與人名標籤樣式
+# 注入 CSS：全面連動按鈕、分頁標籤、人名柔和標籤
 st.markdown(f"""
 <style>
-/* 1. 主按鈕（包含普通 primary 與 form_submit_button） */
+/* 1. 主按鈕 */
 html body button[data-testid*="primary"],
 html body button[data-testid="baseButton-primary"],
 html body button[data-testid="stBaseButton-primary"],
@@ -89,14 +88,14 @@ html body div[data-testid="stFormSubmitButton"] > button:hover {{
     color: #ffffff !important;
 }}
 
-/* 2. 次要按鈕樣式 */
+/* 2. 次要按鈕 */
 html body button[data-testid*="secondary"],
 html body button[data-testid="baseButton-secondary"],
 html body button[data-testid="stBaseButton-secondary"] {{
     border-radius: 8px !important;
 }}
 
-/* 3. 分頁籤選取時的底線與文字顏色 */
+/* 3. 分頁籤選取樣式 */
 html body button[data-testid="stTab"][aria-selected="true"] {{
     color: {current_theme['primary']} !important;
     border-bottom: 2px solid {current_theme['primary']} !important;
@@ -109,18 +108,15 @@ html body div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
     transition: all 0.2s ease-in-out;
 }}
 
-/* 5. 人名標籤 (st.multiselect tags)：覆蓋所有可能標籤元件 */
+/* 5. 人名標籤 (同色系柔霧配色) */
 div[data-testid="stMultiSelect"] {{
     --primary-color: {current_theme['tag_bg']} !important;
 }}
 
 html body div[data-testid="stMultiSelect"] [data-baseweb="tag"],
 html body div[data-testid="stMultiSelect"] [data-testid*="tag"],
-html body div[data-testid="stMultiSelect"] [data-testid*="Tag"],
 html body div[data-testid="stMultiSelect"] span:has(svg),
-html body div[data-testid="stMultiSelect"] div:has(> svg):has(span),
-html body div[data-testid="stMultiSelect"] [class*="multiValue"],
-html body div[data-testid="stMultiSelect"] [class*="MultiValue"] {{
+html body div[data-testid="stMultiSelect"] div:has(> svg):has(span) {{
     background-color: {current_theme['tag_bg']} !important;
     background: {current_theme['tag_bg']} !important;
     border: 1px solid {current_theme['tag_border']} !important;
@@ -128,22 +124,14 @@ html body div[data-testid="stMultiSelect"] [class*="MultiValue"] {{
     padding: 2px 6px !important;
 }}
 
-/* 標籤文字顏色 */
 html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] span,
-html body div[data-testid="stMultiSelect"] [data-testid*="tag"] span,
-html body div[data-testid="stMultiSelect"] span:has(svg) span,
-html body div[data-testid="stMultiSelect"] div:has(> svg):has(span) span {{
+html body div[data-testid="stMultiSelect"] span:has(svg) span {{
     color: {current_theme['tag_text']} !important;
     font-weight: 600 !important;
 }}
 
-/* 標籤關閉按鈕 (X) 圖示顏色 */
 html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] svg,
-html body div[data-testid="stMultiSelect"] [data-testid*="tag"] svg,
-html body div[data-testid="stMultiSelect"] span:has(svg) svg,
-html body div[data-testid="stMultiSelect"] div:has(> svg):has(span) svg,
-html body div[data-testid="stMultiSelect"] span:has(svg) svg path,
-html body div[data-testid="stMultiSelect"] div:has(> svg):has(span) svg path {{
+html body div[data-testid="stMultiSelect"] span:has(svg) svg path {{
     fill: {current_theme['tag_text']} !important;
     stroke: {current_theme['tag_text']} !important;
     color: {current_theme['tag_text']} !important;
@@ -176,7 +164,7 @@ def format_time(ts_str):
     except Exception:
         return str(ts_str)[:16].replace("T", " ")
 
-# 判斷是否為「個人全額付款且無分攤」的自費項目
+# 判斷是否為「個人全額付款且無分攤」的純自費項目
 def is_personal_only(expense):
     split_list = [m.strip() for m in expense.get("split_members", "").split(",") if m.strip()]
     return len(split_list) == 1 and split_list[0] == expense.get("paid_by")
@@ -237,7 +225,7 @@ def fetch_bot_rates():
         status = "連線逾時，已使用備用匯率"
     return rates, status
 
-# ==================== 頂部行程導航與儀表板 ====================
+# ==================== 頂部行程導航與狀態概覽 ====================
 query_trip = st.query_params.get("trip", "okinawa_trip")
 
 with st.container(border=True):
@@ -259,6 +247,12 @@ if not trip_code:
 members = get_members(trip_code)
 expenses = get_expenses(trip_code)
 total_trip_expense = sum(float(e["amount"]) for e in expenses)
+
+# ==================== 【關鍵升級】為每筆帳目編排從 1 開始的序號 ====================
+# 依新增時間先後排序，為當前行程的所有帳目賦予從 1 開始的專屬編號
+sorted_expenses = sorted(expenses, key=lambda x: x["id"])
+id_to_seq = {e["id"]: idx + 1 for idx, e in enumerate(sorted_expenses)}
+id_to_exp = {e["id"]: e for e in expenses}
 
 # 頂部快捷概覽卡片
 c_metric1, c_metric2, c_metric3 = st.columns(3)
@@ -290,21 +284,23 @@ with st.sidebar:
             label_visibility="collapsed"
         )
 
-    # 2. 新增成員卡片
+    # 2. 新增成員卡片（改用懸浮提示，不再反覆重繪卡住）
     with st.container(border=True):
         st.markdown("**➕ 新增成員**")
         with st.form("add_member_form", clear_on_submit=True):
             new_member = st.text_input("姓名", placeholder="例如：小明")
             add_btn = st.form_submit_button("確認加入", type="primary", use_container_width=True)
             if add_btn:
-                if new_member.strip() and new_member.strip() not in members:
-                    supabase.table("members").insert({"trip_code": trip_code, "name": new_member.strip()}).execute()
-                    st.success(f"已加入：{new_member}")
+                clean_name = new_member.strip()
+                if clean_name and clean_name not in members:
+                    supabase.table("members").insert({"trip_code": trip_code, "name": clean_name}).execute()
+                    st.toast(f"✅ 已成功加入成員：{clean_name}")
+                    time.sleep(0.3)
                     st.rerun()
-                elif new_member.strip() in members:
-                    st.warning("此成員已存在！")
+                elif clean_name in members:
+                    st.toast(f"⚠️ 成員「{clean_name}」已存在於名單中！", icon="⚠️")
                 else:
-                    st.error("姓名不能為空白！")
+                    st.toast("❌ 成員姓名不能為空白！", icon="❌")
 
     # 3. 現有成員名單與刪除
     with st.container(border=True):
@@ -314,7 +310,8 @@ with st.sidebar:
             member_to_delete = st.selectbox("選取要刪除的成員：", options=members)
             if st.button("🗑️ 刪除該成員", type="secondary", use_container_width=True):
                 supabase.table("members").delete().eq("trip_code", trip_code).eq("name", member_to_delete).execute()
-                st.success(f"已刪除：{member_to_delete}")
+                st.toast(f"🗑️ 已刪除成員：{member_to_delete}")
+                time.sleep(0.3)
                 st.rerun()
         else:
             st.warning("尚無成員，請在上方加入！")
@@ -351,9 +348,9 @@ with tab1:
                 submitted = st.form_submit_button("💾 儲存並同步這筆記帳", type="primary", use_container_width=True)
                 if submitted:
                     if not item_name.strip():
-                        st.error("請填寫品項名稱！")
+                        st.toast("❌ 請填寫消費項目名稱！", icon="❌")
                     elif not split_with:
-                        st.error("分攤對象不能為空！")
+                        st.toast("❌ 分攤對象不能為空！", icon="❌")
                     else:
                         supabase.table("expenses").insert({
                             "trip_code": trip_code,
@@ -362,10 +359,11 @@ with tab1:
                             "paid_by": paid_by,
                             "split_members": ",".join(split_with)
                         }).execute()
-                        st.success("記帳成功！")
+                        st.toast(f"💾 記帳成功：{item_name.strip()}！")
+                        time.sleep(0.3)
                         st.rerun()
 
-    # 區塊 2：明細清單（只篩選顯示團體分攤項目，純個人自費自動隱藏）
+    # 區塊 2：明細清單（只顯示團體分攤，ID 從 1 開始）
     shared_expenses = [e for e in expenses if not is_personal_only(e)]
 
     with st.container(border=True):
@@ -376,7 +374,7 @@ with tab1:
             exp_data = []
             for e in shared_expenses:
                 exp_data.append({
-                    "ID": e["id"],
+                    "ID": id_to_seq[e["id"]],  # 顯示從 1 開始的序號
                     "記帳時間": format_time(e.get("created_at")),
                     "消費項目": e["item"],
                     "總金額": f"${float(e['amount']):,.0f}",
@@ -386,7 +384,7 @@ with tab1:
             df_exp = pd.DataFrame(exp_data)
             st.dataframe(df_exp, use_container_width=True, hide_index=True)
 
-            # 下方獨立操作區塊：修改與刪除
+            # 下方獨立操作區塊：修改與刪除（選單同步顯示從 1 開始的編號）
             col_edit_card, col_del_card = st.columns(2)
             
             with col_edit_card:
@@ -394,10 +392,10 @@ with tab1:
                     edit_id = st.selectbox(
                         "選擇欲修改的項目：",
                         options=[e["id"] for e in shared_expenses],
-                        format_func=lambda x: f"ID {x}: {[e['item'] for e in shared_expenses if e['id']==x][0]} (${float([e['amount'] for e in shared_expenses if e['id']==x][0]):,.0f})",
+                        format_func=lambda x: f"編號 #{id_to_seq[x]}：{id_to_exp[x]['item']} (${float(id_to_exp[x]['amount']):,.0f})",
                         key="select_edit_id"
                     )
-                    target_exp = [e for e in shared_expenses if e["id"] == edit_id][0]
+                    target_exp = id_to_exp[edit_id]
                     current_split = [m.strip() for m in target_exp["split_members"].split(",") if m.strip() in members]
                     
                     with st.form("edit_form"):
@@ -410,9 +408,9 @@ with tab1:
                         save_edit = st.form_submit_button("💾 儲存修改", type="primary", use_container_width=True)
                         if save_edit:
                             if not new_item.strip():
-                                st.error("項目名稱不可為空！")
+                                st.toast("❌ 項目名稱不可為空！", icon="❌")
                             elif not new_split:
-                                st.error("分攤名單不可為空！")
+                                st.toast("❌ 分攤名單不可為空！", icon="❌")
                             else:
                                 supabase.table("expenses").update({
                                     "item": new_item.strip(),
@@ -420,7 +418,8 @@ with tab1:
                                     "paid_by": new_paid_by,
                                     "split_members": ",".join(new_split)
                                 }).eq("id", edit_id).execute()
-                                st.success("帳目已更新！")
+                                st.toast("✏️ 帳目已成功更新！")
+                                time.sleep(0.3)
                                 st.rerun()
 
             with col_del_card:
@@ -428,12 +427,13 @@ with tab1:
                     del_id = st.selectbox(
                         "選擇欲刪除的項目：",
                         options=[e["id"] for e in shared_expenses],
-                        format_func=lambda x: f"ID {x}: {[e['item'] for e in shared_expenses if e['id']==x][0]} (${float([e['amount'] for e in shared_expenses if e['id']==x][0]):,.0f})",
+                        format_func=lambda x: f"編號 #{id_to_seq[x]}：{id_to_exp[x]['item']} (${float(id_to_exp[x]['amount']):,.0f})",
                         key="select_del_id"
                     )
                     if st.button("確認刪除該筆記錄", type="primary", use_container_width=True):
                         supabase.table("expenses").delete().eq("id", del_id).execute()
-                        st.success("已成功刪除！")
+                        st.toast("🗑️ 該筆帳目已成功刪除！")
+                        time.sleep(0.3)
                         st.rerun()
         else:
             st.info("目前尚無團體分攤紀錄。")
@@ -459,11 +459,11 @@ with tab2:
                 split_list = [m.strip() for m in e["split_members"].split(",") if m.strip()]
                 share = amt / len(split_list) if split_list else 0
 
-                # 若是當事人付款
+                # 當事人付款
                 if e["paid_by"] == selected_user:
                     total_paid_by_user += amt
 
-                # 若當事人有分攤
+                # 當事人有分攤
                 if selected_user in split_list:
                     total_consumed_by_user += share
 
@@ -471,7 +471,8 @@ with tab2:
                 if is_personal_only(e):
                     if e["paid_by"] == selected_user:
                         personal_expenses_list.append({
-                            "ID": e["id"],
+                            "raw_id": e["id"],
+                            "ID": id_to_seq[e["id"]],
                             "記帳時間": format_time(e.get("created_at")),
                             "項目名稱": e["item"],
                             "自費金額": f"${amt:,.0f}"
@@ -479,6 +480,7 @@ with tab2:
                 else:
                     if selected_user in split_list or e["paid_by"] == selected_user:
                         group_expenses_list.append({
+                            "ID": id_to_seq[e["id"]],
                             "記帳時間": format_time(e.get("created_at")),
                             "項目": e["item"],
                             "整筆金額": f"${amt:,.0f}",
@@ -501,43 +503,44 @@ with tab2:
                 else:
                     st.metric("🔴 我目前應補繳（淨額）", f"-${abs(net_balance):,.2f}")
 
-        # 區塊 A：個人專屬自費項目（第一頁不顯示，直接在此呈現）
+        # 區塊 A：個人專屬自費項目（ID 同樣從 1 開始）
         with st.container(border=True):
             st.markdown(f"#### 🛍️ **{selected_user}** 的個人自費清單（無他人分攤）")
             if personal_expenses_list:
                 df_personal = pd.DataFrame(personal_expenses_list)
-                st.dataframe(df_personal.drop(columns=["ID"]), use_container_width=True, hide_index=True)
+                st.dataframe(df_personal.drop(columns=["raw_id"]), use_container_width=True, hide_index=True)
                 
-                # 個人自費修改與刪除
                 col_p_edit, col_p_del = st.columns(2)
                 with col_p_edit:
                     with st.expander("✏️ 修改個人自費項目"):
                         p_edit_id = st.selectbox(
                             "選取要修改的個人項目：",
-                            options=[p["ID"] for p in personal_expenses_list],
-                            format_func=lambda x: f"{[p['項目名稱'] for p in personal_expenses_list if p['ID']==x][0]} ({[p['自費金額'] for p in personal_expenses_list if p['ID']==x][0]})",
+                            options=[p["raw_id"] for p in personal_expenses_list],
+                            format_func=lambda x: f"編號 #{id_to_seq[x]}：{id_to_exp[x]['item']} (${float(id_to_exp[x]['amount']):,.0f})",
                             key="p_edit_select"
                         )
-                        target_p = [e for e in expenses if e["id"] == p_edit_id][0]
+                        target_p = id_to_exp[p_edit_id]
                         with st.form("personal_edit_form"):
                             p_new_item = st.text_input("修改名稱", value=target_p["item"])
                             p_new_amt = st.number_input("修改金額", min_value=1.0, value=float(target_p["amount"]), step=50.0)
                             if st.form_submit_button("儲存修改", type="primary", use_container_width=True):
                                 if p_new_item.strip():
                                     supabase.table("expenses").update({"item": p_new_item.strip(), "amount": p_new_amt}).eq("id", p_edit_id).execute()
-                                    st.success("已更新！")
+                                    st.toast("✏️ 個人項目已更新！")
+                                    time.sleep(0.3)
                                     st.rerun()
                 with col_p_del:
                     with st.expander("🗑️ 刪除個人自費項目"):
                         p_del_id = st.selectbox(
                             "選取要刪除的個人項目：",
-                            options=[p["ID"] for p in personal_expenses_list],
-                            format_func=lambda x: f"{[p['項目名稱'] for p in personal_expenses_list if p['ID']==x][0]} ({[p['自費金額'] for p in personal_expenses_list if p['ID']==x][0]})",
+                            options=[p["raw_id"] for p in personal_expenses_list],
+                            format_func=lambda x: f"編號 #{id_to_seq[x]}：{id_to_exp[x]['item']} (${float(id_to_exp[x]['amount']):,.0f})",
                             key="p_del_select"
                         )
                         if st.button("確認刪除此個人項目", type="primary", use_container_width=True):
                             supabase.table("expenses").delete().eq("id", p_del_id).execute()
-                            st.success("已成功刪除！")
+                            st.toast("🗑️ 已成功刪除該個人項目！")
+                            time.sleep(0.3)
                             st.rerun()
             else:
                 st.info(f"目前尚無 {selected_user} 的個人純自費項目。")
