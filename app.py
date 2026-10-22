@@ -70,10 +70,16 @@ current_theme = THEMES[st.session_state["theme_name"]]
 # ==================== 頂級現代 UI / UX 樣式系統注入 ====================
 st.markdown(f"""
 <style>
-/* 1. 全局字體與平滑滾動 */
+/* 1. 全局字體與安全間距（修復頂部被工具列遮擋） */
 html, body, [class*="css"] {{
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Noto Sans TC", sans-serif;
     letter-spacing: -0.01em;
+}}
+
+/* 電腦端頂部安全留白 */
+.block-container {{
+    padding-top: 3.2rem !important;
+    padding-bottom: 3rem !important;
 }}
 
 /* 2. 背景呼吸微光與狀態燈 */
@@ -248,14 +254,17 @@ html body div[data-testid="stMultiSelect"] span:has(svg) svg path {{
     color: {current_theme['tag_text']} !important;
 }}
 
-/* 10. 手機響應式 (@media) */
+/* 10. 【核心修復】手機專屬安全留白：避開官方工具列與瀏海 */
 @media (max-width: 768px) {{
     .block-container {{
-        padding: 1rem 0.75rem 2.5rem 0.75rem !important;
+        padding-top: 4.2rem !important;  /* 保證避開頂部 Fork/GitHub 工具列 */
+        padding-left: 0.85rem !important;
+        padding-right: 0.85rem !important;
+        padding-bottom: 2.5rem !important;
     }}
     div[data-testid="stTabs"] button[data-testid="stTab"] {{
-        padding: 8px 12px !important;
-        font-size: 0.88rem !important;
+        padding: 8px 10px !important;
+        font-size: 0.85rem !important;
     }}
 }}
 </style>
@@ -519,7 +528,7 @@ total_trip_expense = sum(int(round(float(e["amount"]))) for e in expenses)
 
 id_to_exp = {e["id"]: e for e in expenses}
 
-# 頂部行程導航列（整合微光狀態點與動作按鈕）
+# 頂部行程導航列
 with st.container(border=True):
     col_t1, col_t2, col_t3 = st.columns([3, 1, 1])
     with col_t1:
@@ -538,7 +547,7 @@ with st.container(border=True):
             st.query_params.clear()
             st.rerun()
 
-# 頂部指標卡片（微光頂部裝飾條，數值清晰純整數）
+# 頂部指標卡片
 c_metric1, c_metric2, c_metric3 = st.columns(3)
 with c_metric1:
     st.metric("🎟️ 行程邀請碼", trip_code)
@@ -687,7 +696,7 @@ with st.sidebar:
                         st.rerun()
 
 # ==============================================================================
-# 橫列主功能選單（俐落現代 3 膠囊分頁，手機觸控無敵舒適）
+# 橫列主功能選單（俐落現代 3 膠囊分頁）
 # ==============================================================================
 tab1, tab2, tab3 = st.tabs([
     "📝 記帳明細管理",
