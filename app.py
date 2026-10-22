@@ -13,47 +13,52 @@ from datetime import datetime
 # 頁面標題與佈局
 st.set_page_config(page_title="旅遊即時分帳系統", page_icon="✈️", layout="wide", initial_sidebar_state="auto")
 
-# ==================== 5 種精選質感色彩主題 ====================
+# ==================== 5 種精緻質感色彩主題 ====================
 THEMES = {
     "🌿 莫蘭迪鼠尾草綠": {
-        "primary": "#4A6B5D",
-        "hover": "#385246",
-        "tag_bg": "#E2ECE7",
-        "tag_border": "#B8CECA",
-        "tag_text": "#284438",
-        "light": "rgba(74, 107, 93, 0.12)"
+        "primary": "#456658",
+        "hover": "#365246",
+        "tag_bg": "#E5EFEA",
+        "tag_border": "#BED6CA",
+        "tag_text": "#234033",
+        "light": "rgba(69, 102, 88, 0.15)",
+        "gradient": "linear-gradient(135deg, #456658 0%, #688B7D 100%)"
     },
     "🍂 暖陽焦糖陶土": {
-        "primary": "#C86D51",
-        "hover": "#A5543A",
-        "tag_bg": "#F7ECE6",
-        "tag_border": "#E5C6B8",
-        "tag_text": "#783622",
-        "light": "rgba(200, 109, 81, 0.12)"
+        "primary": "#C36549",
+        "hover": "#A15037",
+        "tag_bg": "#FAECE6",
+        "tag_border": "#ECC5B8",
+        "tag_text": "#723120",
+        "light": "rgba(195, 101, 73, 0.15)",
+        "gradient": "linear-gradient(135deg, #C36549 0%, #DFA08B 100%)"
     },
     "🌊 深海暮靄靛藍": {
-        "primary": "#2E5B82",
-        "hover": "#1F3E5A",
+        "primary": "#2B567C",
+        "hover": "#1C3C58",
         "tag_bg": "#E3EDF6",
-        "tag_border": "#B7D0E6",
-        "tag_text": "#163A5C",
-        "light": "rgba(46, 91, 130, 0.12)"
+        "tag_border": "#B7D0E5",
+        "tag_text": "#153655",
+        "light": "rgba(43, 86, 124, 0.15)",
+        "gradient": "linear-gradient(135deg, #2B567C 0%, #517EAA 100%)"
     },
     "🌸 霧面煙燻胭粉": {
-        "primary": "#B05A6F",
-        "hover": "#924456",
-        "tag_bg": "#F9E9ED",
-        "tag_border": "#E8C4CE",
-        "tag_text": "#6E2837",
-        "light": "rgba(176, 90, 111, 0.12)"
+        "primary": "#AA556B",
+        "hover": "#8C3F53",
+        "tag_bg": "#FAE8ED",
+        "tag_border": "#E7BDC8",
+        "tag_text": "#6B2335",
+        "light": "rgba(170, 85, 107, 0.15)",
+        "gradient": "linear-gradient(135deg, #AA556B 0%, #CF8496 100%)"
     },
     "🌑 黑曜玄武岩灰": {
         "primary": "#2D3139",
         "hover": "#1A1D23",
-        "tag_bg": "#EBECEE",
-        "tag_border": "#CDD0D5",
-        "tag_text": "#1E2229",
-        "light": "rgba(45, 49, 57, 0.12)"
+        "tag_bg": "#ECEEF0",
+        "tag_border": "#CED2D7",
+        "tag_text": "#1E2228",
+        "light": "rgba(45, 49, 57, 0.15)",
+        "gradient": "linear-gradient(135deg, #2D3139 0%, #4E5562 100%)"
     }
 }
 
@@ -62,77 +67,165 @@ if "theme_name" not in st.session_state:
 
 current_theme = THEMES[st.session_state["theme_name"]]
 
-# ==================== 全設備 RWD 響應式與質感樣式注入 ====================
+# ==================== 頂級現代 UI / UX 樣式系統注入 ====================
 st.markdown(f"""
 <style>
 /* 1. 全局字體與平滑滾動 */
-html, body {{
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
+html, body, [class*="css"] {{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Noto Sans TC", sans-serif;
+    letter-spacing: -0.01em;
 }}
 
-/* 2. 主按鈕質感：加強圓角、微陰影與手勢反應 */
+/* 2. 背景呼吸微光與狀態燈 */
+@keyframes pulseDot {{
+    0% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }}
+    70% {{ transform: scale(1.05); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }}
+    100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }}
+}}
+.live-pulse-dot {{
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulseDot 2s infinite ease-in-out;
+    vertical-align: middle;
+}}
+
+/* 3. 膠囊式分頁導航 (Segmented Pill Tabs) */
+div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
+    background-color: #f1f5f9 !important;
+    padding: 5px !important;
+    border-radius: 14px !important;
+    gap: 4px !important;
+    border: none !important;
+}}
+div[data-testid="stTabs"] button[data-testid="stTab"] {{
+    border-radius: 10px !important;
+    border: none !important;
+    padding: 9px 20px !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    background: transparent !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}}
+div[data-testid="stTabs"] button[data-testid="stTab"]:hover {{
+    color: {current_theme['primary']} !important;
+}}
+div[data-testid="stTabs"] button[data-testid="stTab"][aria-selected="true"] {{
+    background-color: #ffffff !important;
+    color: {current_theme['primary']} !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}}
+div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
+    display: none !important;
+}}
+
+/* 4. 現代卡片 (Modern Shadow Card) */
+div[data-testid="stVerticalBlockBorderWrapper"] {{
+    border-radius: 14px !important;
+    border: 1px solid #eef2f6 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02) !important;
+    transition: all 0.25s ease-in-out !important;
+    overflow: hidden;
+}}
+div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
+    border-color: {current_theme['primary']} !important;
+    box-shadow: 0 6px 18px {current_theme['light']} !important;
+}}
+
+/* 5. 數據指標卡片 (Metric Cards with Top Accent) */
+div[data-testid="stMetric"] {{
+    background: #ffffff !important;
+    border: 1px solid #eef2f6 !important;
+    border-radius: 14px !important;
+    padding: 14px 18px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    transition: all 0.25s ease !important;
+}}
+div[data-testid="stMetric"]:hover {{
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04) !important;
+}}
+div[data-testid="stMetric"]::before {{
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: {current_theme['gradient']};
+}}
+div[data-testid="stMetricLabel"] p {{
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+}}
+div[data-testid="stMetricValue"] {{
+    font-size: clamp(1.4rem, 2.5vw, 1.85rem) !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}}
+
+/* 6. 主按鈕質感：飽滿立體微陰影與手勢反應 */
 html body button[data-testid*="primary"],
 html body button[data-testid="baseButton-primary"],
 html body button[data-testid="stBaseButton-primary"],
 html body button[kind="primary"],
 html body .stButton > button[kind="primary"],
 html body div[data-testid="stFormSubmitButton"] > button {{
-    background-color: {current_theme['primary']} !important;
-    border: 1px solid {current_theme['primary']} !important;
+    background: {current_theme['gradient']} !important;
+    border: none !important;
     color: #ffffff !important;
     border-radius: 10px !important;
     font-weight: 600 !important;
-    letter-spacing: 0.3px !important;
     min-height: 42px !important;
-    box-shadow: 0 2px 5px {current_theme['light']} !important;
+    box-shadow: 0 3px 8px {current_theme['light']} !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }}
-
 html body button[data-testid*="primary"]:hover,
 html body button[data-testid="baseButton-primary"]:hover,
 html body div[data-testid="stFormSubmitButton"] > button:hover {{
-    background-color: {current_theme['hover']} !important;
-    border-color: {current_theme['hover']} !important;
+    opacity: 0.93 !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px {current_theme['light']} !important;
+    box-shadow: 0 6px 14px {current_theme['light']} !important;
+}}
+html body button[data-testid*="primary"]:active,
+html body div[data-testid="stFormSubmitButton"] > button:active {{
+    transform: scale(0.98);
 }}
 
-/* 3. 次要按鈕樣式 */
+/* 7. 次要按鈕 */
 html body button[data-testid*="secondary"],
 html body button[data-testid="baseButton-secondary"],
 html body button[data-testid="stBaseButton-secondary"] {{
     border-radius: 10px !important;
     min-height: 40px !important;
     font-weight: 500 !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+}}
+html body button[data-testid*="secondary"]:hover {{
+    border-color: #94a3b8 !important;
+    background: #f8fafc !important;
 }}
 
-/* 4. 頂部分頁籤 (Tabs)：行動端 3 標籤完美均分 */
-div[data-testid="stTabs"] button[data-testid="stTab"] {{
-    padding: 10px 18px !important;
-    font-size: 0.95rem !important;
-    font-weight: 600 !important;
+/* 8. 輸入框焦點光暈效果 (Focus Glow) */
+input[type="text"], input[type="password"], input[type="number"], textarea {{
+    border-radius: 10px !important;
+    border: 1px solid #cbd5e1 !important;
     transition: all 0.2s ease !important;
 }}
-div[data-testid="stTabs"] button[data-testid="stTab"][aria-selected="true"] {{
-    color: {current_theme['primary']} !important;
-    border-bottom: 3px solid {current_theme['primary']} !important;
-}}
-
-/* 5. 現代圓潤微光影卡片 */
-div[data-testid="stVerticalBlockBorderWrapper"] {{
-    border-radius: 12px !important;
-    border: 1px solid #eef0f2 !important;
-    background-color: #ffffff !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
-    transition: all 0.25s ease !important;
-}}
-div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
+input:focus, textarea:focus {{
     border-color: {current_theme['primary']} !important;
-    box-shadow: 0 4px 14px {current_theme['light']} !important;
+    box-shadow: 0 0 0 3px {current_theme['light']} !important;
 }}
 
-/* 6. 人名標籤 (st.multiselect) 同步柔色系 */
+/* 9. 人名標籤 (st.multiselect) 同色系柔霧膠囊 */
 div[data-testid="stMultiSelect"] {{
     --primary-color: {current_theme['tag_bg']} !important;
 }}
@@ -141,8 +234,8 @@ html body div[data-testid="stMultiSelect"] [data-testid*="tag"],
 html body div[data-testid="stMultiSelect"] span:has(svg) {{
     background-color: {current_theme['tag_bg']} !important;
     border: 1px solid {current_theme['tag_border']} !important;
-    border-radius: 6px !important;
-    padding: 2px 7px !important;
+    border-radius: 8px !important;
+    padding: 3px 8px !important;
 }}
 html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] span,
 html body div[data-testid="stMultiSelect"] span:has(svg) span {{
@@ -155,22 +248,14 @@ html body div[data-testid="stMultiSelect"] span:has(svg) svg path {{
     color: {current_theme['tag_text']} !important;
 }}
 
-/* 7. 手機與平板專屬響應式規則 (@media) */
+/* 10. 手機響應式 (@media) */
 @media (max-width: 768px) {{
-    /* 縮小手機端大標題與邊界，增加可用視野 */
     .block-container {{
-        padding: 1.2rem 0.8rem !important;
+        padding: 1rem 0.75rem 2.5rem 0.75rem !important;
     }}
-    /* 數據卡片數值文字大小自適應，防止換行爆開 */
-    div[data-testid="stMetricValue"] {{
-        font-size: clamp(1.2rem, 5vw, 1.6rem) !important;
-    }}
-    div[data-testid="stMetricLabel"] {{
-        font-size: 0.82rem !important;
-    }}
-    /* 欄位在極小螢幕下保持舒適內距 */
-    div[data-testid="column"] {{
-        padding: 0 3px !important;
+    div[data-testid="stTabs"] button[data-testid="stTab"] {{
+        padding: 8px 12px !important;
+        font-size: 0.88rem !important;
     }}
 }}
 </style>
@@ -195,7 +280,7 @@ def generate_invite_code():
     digits = ''.join(random.choices(string.digits, k=3))
     return f"{letters}{digits}"
 
-# 輔助函式：時間轉換（精確至秒）
+# 時間轉換（精確至秒）
 def format_time(ts_str):
     if not ts_str:
         return ""
@@ -313,11 +398,11 @@ if "current_trip" not in st.session_state:
 current_trip = st.session_state["current_trip"]
 
 # ==============================================================================
-# 畫面 A：大廳首頁（雙方塊卡片響應式排版）
+# 畫面 A：大廳首頁（雙方塊質感卡片排版）
 # ==============================================================================
 if not current_trip:
-    st.markdown("<h2 style='text-align: center; margin-bottom: 1.5rem;'>✈️ 旅遊即時分帳系統</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #6b7280; margin-top: -1.2rem; font-size: 0.95rem;'>建立全新旅遊分帳，或輸入好友邀請碼參與共同記帳！</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; margin-bottom: 0.5rem; font-weight: 800;'>✈️ 旅遊即時分帳系統</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748b; margin-bottom: 2rem; font-size: 0.95rem;'>快速建立全新旅遊分帳，或輸入好友專屬邀請碼加入共編！</p>", unsafe_allow_html=True)
 
     col_create, col_join = st.columns(2)
 
@@ -325,14 +410,14 @@ if not current_trip:
     with col_create:
         with st.container(border=True):
             st.markdown("### ➕ 新增分帳行程")
-            st.caption("由你發起行程，系統自動產生 7 碼專屬邀請碼！")
+            st.caption("由你發起行程，系統自動配發 7 碼專屬邀請代號！")
             
             with st.form("create_trip_form"):
                 new_trip_name = st.text_input("📍 旅程名稱", placeholder="例如：東京五天四夜、澎湖花火節")
-                new_admin_pin = st.text_input("🔒 設定管理員密碼（4~6 位數字）", type="password", max_chars=6, help="刪除成員或刪除整本帳簿需此密碼")
+                new_admin_pin = st.text_input("🔒 設定管理員密碼（4~6 位數字）", type="password", max_chars=6, help="刪除成員或整本帳簿需此密碼驗證")
                 creator_name = st.text_input("👤 你的名字（主揪）", placeholder="例如：小明")
 
-                create_submit = st.form_submit_button("✨ 立即建立行程", type="primary", use_container_width=True)
+                create_submit = st.form_submit_button("✨ 立即建立並產生邀請碼", type="primary", use_container_width=True)
 
                 if create_submit:
                     clean_name = new_trip_name.strip()
@@ -372,7 +457,7 @@ if not current_trip:
     with col_join:
         with st.container(border=True):
             st.markdown("### 🚀 加入現有分帳")
-            st.caption("輸入好友分享的 7 碼邀請碼，即可參與共同記帳！")
+            st.caption("輸入同行好友分享的 7 碼邀請碼，即可參與共同記帳！")
 
             join_code_input = st.text_input("🔑 輸入邀請碼 (必填)", value=query_trip, placeholder="例如：ABCD123", max_chars=7).strip().upper()
             
@@ -434,12 +519,12 @@ total_trip_expense = sum(int(round(float(e["amount"]))) for e in expenses)
 
 id_to_exp = {e["id"]: e for e in expenses}
 
-# 頂部行程導航列（支援手機彈性排版）
+# 頂部行程導航列（整合微光狀態點與動作按鈕）
 with st.container(border=True):
     col_t1, col_t2, col_t3 = st.columns([3, 1, 1])
     with col_t1:
         st.markdown(f"### ✈️ {trip_name}")
-        st.caption(f"🔑 邀請碼：`{trip_code}` ｜ ⚡ 按鈕執行完成即時更新（背景 30 秒自動同步）")
+        st.markdown(f"<span class='live-pulse-dot'></span><small style='color: #64748b;'>邀請碼：<b><code>{trip_code}</code></b> ｜ 雲端即時連線（30 秒靜默同步）</small>", unsafe_allow_html=True)
     with col_t2:
         st.write("")
         if st.button("🔄 立即重新整理", type="primary", use_container_width=True, help="強制自雲端抓取最新資料"):
@@ -453,24 +538,24 @@ with st.container(border=True):
             st.query_params.clear()
             st.rerun()
 
-# 頂部數據卡片（純整數、行動自適應）
+# 頂部指標卡片（微光頂部裝飾條，數值清晰純整數）
 c_metric1, c_metric2, c_metric3 = st.columns(3)
 with c_metric1:
-    st.metric("📋 行程邀請碼", trip_code)
+    st.metric("🎟️ 行程邀請碼", trip_code)
 with c_metric2:
-    st.metric("👥 成員總數", f"{len(members)} 位")
+    st.metric("👥 行程夥伴", f"{len(members)} 位")
 with c_metric3:
-    st.metric("💵 全團總累積花費", f"${total_trip_expense:,} 元")
+    st.metric("💳 全團總支出", f"${total_trip_expense:,} 元")
 
 st.write("")
 
 # ==============================================================================
-# 側邊欄：整合管理、匯率轉換與操作紀錄
+# 側邊欄：整合管理、匯率工具與操作紀錄
 # ==============================================================================
 with st.sidebar:
-    st.markdown("### ⚙️ 系統工具與管理")
+    st.markdown("### ⚙️ 系統設定與工具箱")
     
-    # 1. 質感主題色彩
+    # 1. 質感主題色彩切換
     with st.container(border=True):
         st.markdown("**🎨 系統色彩主題**")
         def on_theme_change():
@@ -485,7 +570,7 @@ with st.sidebar:
             label_visibility="collapsed"
         )
 
-    # 2. 成員管理區塊
+    # 2. 成員名單管理
     with st.container(border=True):
         st.markdown("**👥 成員名單管理**")
         with st.form("add_member_form", clear_on_submit=True):
@@ -504,8 +589,8 @@ with st.sidebar:
                     st.toast("❌ 成員姓名不能為空白！", icon="❌")
 
         if members:
-            st.caption(f"現有成員 ({len(members)}人)：" + "、".join(members))
-            with st.expander("🗑️ 刪除成員 (需密碼)"):
+            st.caption(f"目前名單 ({len(members)}人)：" + "、".join(members))
+            with st.expander("🗑️ 刪除成員 (需管理員密碼)"):
                 member_to_delete = st.selectbox("選取要刪除的成員：", options=members)
                 del_pin_input = st.text_input("🔒 管理員密碼", type="password", key="input_del_pin", placeholder="4~6位密碼")
                 if st.button("驗證並刪除成員", type="secondary", use_container_width=True):
@@ -519,7 +604,7 @@ with st.sidebar:
                         st.toast(f"🗑️ 已刪除成員：{member_to_delete}")
                         st.rerun()
 
-    # 3. 【全新轉移】💱 台灣銀行即時匯率小工具
+    # 3. 台灣銀行即時匯率換算小工具
     with st.container(border=True):
         st.markdown("**💱 台灣銀行即時匯率換算**")
         bot_rates, bot_status = fetch_bot_rates()
@@ -547,20 +632,19 @@ with st.sidebar:
             else:
                 st.success(f"💰 約 **`{conv_amt:,.2f}`** {sb_to}")
 
-            # 簡易參考表格
-            st.markdown("<small><b>台銀最新現金賣出牌告：</b></small>", unsafe_allow_html=True)
+            st.markdown("<small style='color: #64748b;'><b>最新牌告現金賣出價：</b></small>", unsafe_allow_html=True)
             fx_summary = [{"幣別": c, "牌告價": f"{bot_rates[c]['cash_sell']:.4f} TWD"} for c in ["JPY", "USD", "THB", "KRW", "CNY"] if c in bot_rates]
             st.dataframe(pd.DataFrame(fx_summary), use_container_width=True, hide_index=True)
 
-    # 4. 【全新轉移】📜 操作紀錄異動明細
+    # 4. 操作紀錄異動明細
     with st.container(border=True):
-        st.markdown("**📜 操作紀錄異動明細**")
-        st.caption(f"追蹤本行程最新異動行為 ({len(logs)} 筆)")
-        with st.expander("查看異動明細日誌", expanded=False):
+        st.markdown("**📜 系統異動紀錄明細**")
+        st.caption(f"即時追蹤本行程操作行為 ({len(logs)} 筆)")
+        with st.expander("查看異動日誌", expanded=False):
             if logs:
                 log_records = [{
                     "時間": format_time(l.get("created_at")),
-                    "類型": l.get("action_type", ""),
+                    "動作": l.get("action_type", ""),
                     "內容": l.get("details", "")
                 } for l in logs]
                 st.dataframe(pd.DataFrame(log_records), use_container_width=True, hide_index=True)
@@ -603,7 +687,7 @@ with st.sidebar:
                         st.rerun()
 
 # ==============================================================================
-# 橫列主功能選單（俐落精簡為核心 3 分頁，手機端完美展現）
+# 橫列主功能選單（俐落現代 3 膠囊分頁，手機觸控無敵舒適）
 # ==============================================================================
 tab1, tab2, tab3 = st.tabs([
     "📝 記帳明細管理",
@@ -653,7 +737,7 @@ with tab1:
                         st.toast(f"💾 記帳成功：{item_name.strip()}！")
                         st.rerun()
 
-    # 明細清單（只顯示團體分攤，連貫序號）
+    # 明細清單（只篩選顯示團體分攤項目）
     shared_expenses = [e for e in expenses if not is_personal_only(e)]
     sorted_shared = sorted(shared_expenses, key=lambda x: x["id"])
     shared_id_to_seq = {e["id"]: idx + 1 for idx, e in enumerate(sorted_shared)}
