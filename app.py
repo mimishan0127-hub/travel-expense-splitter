@@ -110,7 +110,7 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
     display: none !important;
 }}
 
-/* 4. 極簡扁平卡片（極細框線、無多餘大陰影） */
+/* 4. 極簡扁平卡片 */
 div[data-testid="stVerticalBlockBorderWrapper"] {{
     border-radius: 12px !important;
     border: 1px solid #e2e8f0 !important;
@@ -137,7 +137,7 @@ div[data-testid="stMetricValue"] {{
     color: #0f172a !important;
 }}
 
-/* 6. 按鈕樣式：圓角、簡約無厚重陰影 */
+/* 6. 按鈕樣式 */
 html body button[data-testid*="primary"],
 html body button[data-testid="baseButton-primary"],
 html body button[kind="primary"],
@@ -168,7 +168,7 @@ html body button[data-testid="baseButton-secondary"] {{
     min-height: 38px !important;
 }}
 
-/* 7. 人名標籤 (多選標籤) 扁平淡色 */
+/* 7. 人名標籤 */
 div[data-testid="stMultiSelect"] {{
     --primary-color: {current_theme['tag_bg']} !important;
 }}
@@ -299,6 +299,10 @@ if "cnt_manage_exp" not in st.session_state:
     st.session_state["cnt_manage_exp"] = 0
 if "cnt_manage_p" not in st.session_state:
     st.session_state["cnt_manage_p"] = 0
+if "confirm_del_exp_id" not in st.session_state:
+    st.session_state["confirm_del_exp_id"] = None
+if "confirm_del_p_id" not in st.session_state:
+    st.session_state["confirm_del_p_id"] = None
 
 # ==============================================================================
 # 狀態檢查：判斷是否已登入特定行程
@@ -333,7 +337,8 @@ if not current_trip:
                 if create_submit:
                     clean_name = new_trip_name.strip()
                     clean_pin = new_admin_pin.strip()
-                    clean_creator = creator_name.strip()
+                    # 漏洞修復：清除姓名中的逗號，防止分隔錯亂
+                    clean_creator = re.sub(r'[,，]', '', creator_name.strip())
 
                     if not clean_name:
                         st.toast("❌ 請填寫旅程名稱！")
@@ -360,6 +365,7 @@ if not current_trip:
                         log_activity(code, "建立行程", f"主揪「{clean_creator}」建立了「{clean_name}」")
 
                         st.session_state["current_trip"] = code
+                        st.session_state["user_name"] = clean_creator
                         st.query_params["trip"] = code
                         st.toast(f"🎉 建立成功！邀請碼為：{code}")
                         st.rerun()
@@ -395,13 +401,17 @@ if not current_trip:
                     elif not trip_info:
                         st.toast("❌ 邀請碼無效！")
                     else:
-                        clean_join_name = join_member_name.strip()
+                        # 漏洞修復：清除姓名中的逗號
+                        clean_join_name = re.sub(r'[,，]', '', join_member_name.strip())
                         if clean_join_name and clean_join_name not in existing_members:
                             supabase.table("members").insert({
                                 "trip_code": join_code_input,
                                 "name": clean_join_name
                             }).execute()
                             log_activity(join_code_input, "成員加入", f"新成員「{clean_join_name}」加入行程")
+                            st.session_state["user_name"] = clean_join_name
+                        elif clean_join_name:
+                            st.session_state["user_name"] = clean_join_name
 
                         st.session_state["current_trip"] = join_code_input
                         st.query_params["trip"] = join_code_input
@@ -416,7 +426,7 @@ if not current_trip:
 trip_code = current_trip
 trip_info = get_trip_info(trip_code)
 trip_name = trip_info["trip_name"] if trip_info else trip_code
-admin_pin = trip_info["admin_pin"] if trip_info else "0000"
+admin_pin = trip_info["admin_pin"] if trip_info else ""
 
 members = get_members(trip_code)
 expenses = get_expenses(trip_code)
@@ -443,7 +453,7 @@ with col_h2:
             st.query_params.clear()
             st.rerun()
 
-# 頂部三大直覺指標卡（總支出、成員數、每人平均負擔）
+# 頂部三大直覺指標卡
 c_m1, c_m2, c_m3 = st.columns(3)
 avg_expense = int(round(total_trip_expense / len(members))) if members else 0
 
@@ -462,6 +472,22 @@ st.write("")
 with st.sidebar:
     st.markdown("### ⚙️ 工具與成員管理")
     
+    # 0. 記憶當前使用者身分（操作更順暢）
+    with st.container(border=True):
+        st.markdown("**👤 我的身分**")
+        default_user_idx = 0
+        if "user_name" in st.session_state and st.session_state["user_name"] in members:
+            default_user_idx = members.index(st.session_state["user_name"])
+        
+        active_user = st.selectbox(
+            "目前使用此裝置的成員：",
+            options=members if members else ["無成員"],
+            index=default_user_idx if members else 0,
+            help="記帳時會自動將代墊人預設為您，省去重複選取的麻煩"
+        )
+        if members and active_user != st.session_state.get("user_name"):
+            st.session_state["user_name"] = active_user
+
     # 1. 色彩主題
     with st.container(border=True):
         st.markdown("**🎨 介面主題色**")
@@ -477,14 +503,14 @@ with st.sidebar:
             label_visibility="collapsed"
         )
 
-    # 2. 成員管理
+    # 2. 成員管理（含防呆關聯檢查）
     with st.container(border=True):
-        st.markdown("**👥 行程成員**")
+        st.markdown("**👥 行程成員管理**")
         with st.form("add_member_form", clear_on_submit=True):
             new_member = st.text_input("新增姓名", placeholder="例如：阿山", label_visibility="collapsed")
             add_btn = st.form_submit_button("➕ 加入成員", type="primary", use_container_width=True)
             if add_btn:
-                clean_name = new_member.strip()
+                clean_name = re.sub(r'[,，]', '', new_member.strip())
                 if clean_name and clean_name not in members:
                     supabase.table("members").insert({"trip_code": trip_code, "name": clean_name}).execute()
                     log_activity(trip_code, "新增成員", f"新增成員「{clean_name}」")
@@ -501,10 +527,16 @@ with st.sidebar:
                 member_to_delete = st.selectbox("選擇欲刪除成員", options=members)
                 del_pin_input = st.text_input("管理密碼", type="password", key="input_del_pin", placeholder="輸入管理密碼")
                 if st.button("確認刪除", type="secondary", use_container_width=True):
+                    # 漏洞修復 1：安全關聯性檢查
+                    is_payer = any(e.get("paid_by") == member_to_delete for e in expenses)
+                    is_in_split = any(member_to_delete in [m.strip() for m in e.get("split_members", "").split(",")] for e in expenses)
+
                     if not del_pin_input.strip():
                         st.toast("❌ 請輸入密碼！")
-                    elif del_pin_input.strip() != admin_pin:
+                    elif not admin_pin or del_pin_input.strip() != admin_pin:
                         st.toast("❌ 密碼錯誤！")
+                    elif is_payer or is_in_split:
+                        st.error(f"⚠️ 無法刪除「{member_to_delete}」！\n該成員在行程中已有代墊或分攤紀錄，直接刪除會導致帳務無法結算。請先修改或刪除相關帳目後再嘗試。")
                     else:
                         supabase.table("members").delete().eq("trip_code", trip_code).eq("name", member_to_delete).execute()
                         log_activity(trip_code, "刪除成員", f"管理員刪除成員「{member_to_delete}」")
@@ -526,7 +558,7 @@ with st.sidebar:
         for c, info in bot_rates.items():
             rates_to_twd[c] = info["cash_sell"]
 
-        res_amt = (fx_amt * rates_to_twd[fx_from]) / rates_to_twd[fx_to]
+        res_amt = (fx_amt * rates_to_twd.get(fx_from, 1.0)) / rates_to_twd.get(fx_to, 1.0)
         if fx_to == "TWD":
             st.info(f"≈ **${int(round(res_amt)):,}** 台幣")
         else:
@@ -570,14 +602,14 @@ with st.sidebar:
             else:
                 tp_pin = st.text_input("輸入管理密碼", type="password", key="tp_pin_del")
                 if st.button("驗證並繼續", type="secondary", use_container_width=True):
-                    if tp_pin.strip() != admin_pin:
+                    if not admin_pin or tp_pin.strip() != admin_pin:
                         st.toast("❌ 密碼錯誤！")
                     else:
                         st.session_state["confirm_del_trip"] = True
                         st.rerun()
 
 # ==============================================================================
-# 橫列主功能選單（3 膠囊標籤）
+# 橫列主功能選單
 # ==============================================================================
 tab1, tab2, tab3 = st.tabs([
     "📝 記帳明細",
@@ -587,7 +619,6 @@ tab1, tab2, tab3 = st.tabs([
 
 # ==================== Tab 1: 記帳明細 ====================
 with tab1:
-    # 快速記帳
     with st.container(border=True):
         st.markdown("##### ➕ 新增一筆消費")
         if len(members) < 1:
@@ -602,7 +633,9 @@ with tab1:
 
                 c_payer, c_split = st.columns(2)
                 with c_payer:
-                    paid_by = st.selectbox("誰先付錢？", options=members)
+                    # 改進 4：自動預設為當前登入者
+                    current_idx = members.index(st.session_state.get("user_name")) if st.session_state.get("user_name") in members else 0
+                    paid_by = st.selectbox("誰先付錢？", options=members, index=current_idx)
                 with c_split:
                     split_with = st.multiselect("誰要分攤？", options=members, default=members)
 
@@ -642,27 +675,24 @@ with tab1:
                 "分攤名單": e["split_members"]
             } for e in shared_expenses]), use_container_width=True, hide_index=True)
 
-            # 【極簡整合】：編輯與刪除合為一體，直覺流暢
             with st.expander("🛠️ 管理或修改帳目", expanded=False, key=f"exp_mng_{st.session_state['cnt_manage_exp']}"):
                 target_id = st.selectbox(
                     "選擇欲調整的帳目：",
                     options=[e["id"] for e in shared_expenses],
-                    format_func=lambda x: f"#{shared_id_to_seq[x]} {id_to_exp[x]['item']} (${int(round(float(id_to_exp[x]['amount']))):,})",
+                    format_func=lambda x: f"#{shared_id_to_seq[x]} {id_to_exp.get(x, {}).get('item', '')} (${int(round(float(id_to_exp.get(x, {}).get('amount', 0)))):,})",
                     key="sel_mng_exp"
                 )
-                curr_exp = id_to_exp[target_id]
-                curr_split = [m.strip() for m in curr_exp["split_members"].split(",") if m.strip() in members]
+                curr_exp = id_to_exp.get(target_id, {})
+                curr_split = [m.strip() for m in curr_exp.get("split_members", "").split(",") if m.strip() in members]
 
                 with st.form("unified_edit_form"):
-                    e_name = st.text_input("項目名稱", value=curr_exp["item"])
-                    e_amt = st.number_input("金額", min_value=1, value=int(round(float(curr_exp["amount"]))), step=50, format="%d")
-                    p_idx = members.index(curr_exp["paid_by"]) if curr_exp["paid_by"] in members else 0
+                    e_name = st.text_input("項目名稱", value=curr_exp.get("item", ""))
+                    e_amt = st.number_input("金額", min_value=1, value=int(round(float(curr_exp.get("amount", 1)))), step=50, format="%d")
+                    p_idx = members.index(curr_exp.get("paid_by")) if curr_exp.get("paid_by") in members else 0
                     e_paid = st.selectbox("代墊人", options=members, index=p_idx)
                     e_split = st.multiselect("分攤名單", options=members, default=curr_split)
 
-                    c_save, c_empty = st.columns([1, 1])
-                    with c_save:
-                        save_btn = st.form_submit_button("💾 儲存修改", type="primary", use_container_width=True)
+                    save_btn = st.form_submit_button("💾 儲存修改", type="primary", use_container_width=True)
                     if save_btn:
                         if e_name.strip() and e_split:
                             supabase.table("expenses").update({
@@ -676,15 +706,28 @@ with tab1:
                             st.session_state["cnt_manage_exp"] += 1
                             st.rerun()
 
-                # 刪除按鈕直接放在下方，不需分開找兩次
-                if st.button("🗑️ 刪除這筆帳目", type="secondary", use_container_width=True, key="del_mng_btn"):
-                    seq_num = shared_id_to_seq[target_id]
-                    d_name = curr_exp['item']
-                    supabase.table("expenses").delete().eq("id", target_id).execute()
-                    log_activity(trip_code, "刪除記帳", f"刪除 #{seq_num}「{d_name}」")
-                    st.toast("🗑️ 已成功刪除該筆帳目！")
-                    st.session_state["cnt_manage_exp"] += 1
-                    st.rerun()
+                # 改進 2：刪除防呆確認
+                if st.session_state["confirm_del_exp_id"] == target_id:
+                    st.warning(f"⚠️ 確定要刪除 #{shared_id_to_seq[target_id]}「{curr_exp.get('item')}」嗎？此操作不可復原！")
+                    c_dy, c_dn = st.columns(2)
+                    with c_dy:
+                        if st.button("🚨 確認刪除", type="primary", use_container_width=True):
+                            seq_num = shared_id_to_seq[target_id]
+                            d_name = curr_exp.get('item')
+                            supabase.table("expenses").delete().eq("id", target_id).execute()
+                            log_activity(trip_code, "刪除記帳", f"刪除 #{seq_num}「{d_name}」")
+                            st.session_state["confirm_del_exp_id"] = None
+                            st.toast("🗑️ 已成功刪除該筆帳目！")
+                            st.session_state["cnt_manage_exp"] += 1
+                            st.rerun()
+                    with c_dn:
+                        if st.button("取消", use_container_width=True):
+                            st.session_state["confirm_del_exp_id"] = None
+                            st.rerun()
+                else:
+                    if st.button("🗑️ 刪除這筆帳目", type="secondary", use_container_width=True, key="del_mng_btn"):
+                        st.session_state["confirm_del_exp_id"] = target_id
+                        st.rerun()
         else:
             st.caption("尚無團體分攤紀錄。")
 
@@ -696,7 +739,8 @@ with tab2:
         with st.container(border=True):
             col_u_sel, _ = st.columns([1.5, 2])
             with col_u_sel:
-                selected_user = st.selectbox("切換查看成員：", options=members)
+                default_sel_idx = members.index(st.session_state.get("user_name")) if st.session_state.get("user_name") in members else 0
+                selected_user = st.selectbox("切換查看成員：", options=members, index=default_sel_idx)
 
             total_paid_by_user = 0
             total_consumed_by_user = 0
@@ -736,7 +780,6 @@ with tab2:
 
             net_balance = total_paid_by_user - total_consumed_by_user
 
-            # 大字號清晰狀態看板
             st.divider()
             c_p1, c_p2, c_p3 = st.columns(3)
             with c_p1:
@@ -744,10 +787,13 @@ with tab2:
             with c_p2:
                 st.metric("我個人的消費", f"${total_consumed_by_user:,}")
             with c_p3:
-                if net_balance >= 0:
+                # 改進 5：淨額為 0 時的自然語意
+                if net_balance > 0:
                     st.metric("🟢 目前應收回", f"+${net_balance:,}")
-                else:
+                elif net_balance < 0:
                     st.metric("🔴 目前應補繳", f"-${abs(net_balance):,}")
+                else:
+                    st.metric("⚖️ 帳目平衡", "$0")
 
         # 個人純自費清單
         with st.container(border=True):
@@ -764,13 +810,13 @@ with tab2:
                     p_sel_id = st.selectbox(
                         "選擇自費項目：",
                         options=[p["raw_id"] for p in personal_list],
-                        format_func=lambda x: f"#{p_id_seq[x]} {id_to_exp[x]['item']} (${int(round(float(id_to_exp[x]['amount']))):,})",
+                        format_func=lambda x: f"#{p_id_seq[x]} {id_to_exp.get(x, {}).get('item', '')} (${int(round(float(id_to_exp.get(x, {}).get('amount', 0)))):,})",
                         key="sel_p_mng"
                     )
-                    curr_p = id_to_exp[p_sel_id]
+                    curr_p = id_to_exp.get(p_sel_id, {})
                     with st.form("edit_p_form"):
-                        pn_item = st.text_input("名稱", value=curr_p["item"])
-                        pn_amt = st.number_input("金額", min_value=1, value=int(round(float(curr_p["amount"]))), step=50, format="%d")
+                        pn_item = st.text_input("名稱", value=curr_p.get("item", ""))
+                        pn_amt = st.number_input("金額", min_value=1, value=int(round(float(curr_p.get("amount", 1)))), step=50, format="%d")
                         if st.form_submit_button("💾 儲存修改", type="primary", use_container_width=True):
                             if pn_item.strip():
                                 supabase.table("expenses").update({"item": pn_item.strip(), "amount": int(round(pn_amt))}).eq("id", p_sel_id).execute()
@@ -779,12 +825,26 @@ with tab2:
                                 st.session_state["cnt_manage_p"] += 1
                                 st.rerun()
 
-                    if st.button("🗑️ 刪除此自費項目", type="secondary", use_container_width=True, key="del_p_mng_btn"):
-                        supabase.table("expenses").delete().eq("id", p_sel_id).execute()
-                        log_activity(trip_code, "刪除自費", f"{selected_user} 刪除自費「{curr_p['item']}」")
-                        st.toast("🗑️ 已成功刪除！")
-                        st.session_state["cnt_manage_p"] += 1
-                        st.rerun()
+                    # 自費刪除防呆
+                    if st.session_state["confirm_del_p_id"] == p_sel_id:
+                        st.warning(f"⚠️ 確定刪除此自費項目？")
+                        c_py, c_pn = st.columns(2)
+                        with c_py:
+                            if st.button("🚨 確認刪除", type="primary", use_container_width=True, key="p_conf_del"):
+                                supabase.table("expenses").delete().eq("id", p_sel_id).execute()
+                                log_activity(trip_code, "刪除自費", f"{selected_user} 刪除自費「{curr_p.get('item')}」")
+                                st.session_state["confirm_del_p_id"] = None
+                                st.toast("🗑️ 已成功刪除！")
+                                st.session_state["cnt_manage_p"] += 1
+                                st.rerun()
+                        with c_pn:
+                            if st.button("取消", use_container_width=True, key="p_canc_del"):
+                                st.session_state["confirm_del_p_id"] = None
+                                st.rerun()
+                    else:
+                        if st.button("🗑️ 刪除此自費項目", type="secondary", use_container_width=True, key="del_p_mng_btn"):
+                            st.session_state["confirm_del_p_id"] = p_sel_id
+                            st.rerun()
             else:
                 st.caption(f"目前尚無 {selected_user} 的個人純自費項目。")
 
@@ -820,7 +880,7 @@ with tab3:
                 st.markdown("##### 📋 每人結算淨額")
                 st.dataframe(pd.DataFrame([{
                     "成員": k,
-                    "狀態": f"🟢 應收回 +${v:,}" if v >= 0 else f"🔴 應支付 -${abs(v):,}"
+                    "狀態": f"🟢 應收回 +${v:,}" if v > 0 else (f"🔴 應支付 -${abs(v):,}" if v < 0 else "⚖️ 結清 $0")
                 } for k, v in balances.items()]), use_container_width=True, hide_index=True)
 
         with col_b_guide:
@@ -835,6 +895,7 @@ with tab3:
                         creditors.append([m, b])
 
                 settlements = []
+                line_messages = []
                 i, j = 0, 0
                 while i < len(debtors) and j < len(creditors):
                     deb_name, deb_amt = debtors[i]
@@ -843,6 +904,7 @@ with tab3:
                     
                     if trans_amt >= 1:
                         settlements.append(f"👉 **{deb_name}** 轉帳給 **{cred_name}**：`{trans_amt:,}` 元")
+                        line_messages.append(f"• {deb_name} 轉帳給 {cred_name}：${trans_amt:,} 元")
                     
                     debtors[i][1] -= trans_amt
                     creditors[j][1] -= trans_amt
@@ -855,8 +917,16 @@ with tab3:
                 if settlements:
                     for s in settlements:
                         st.info(s)
+                    
+                    # 改進 6：一鍵複製到 LINE 的文字懶人包
+                    st.divider()
+                    st.markdown("**📋 LINE 群組催款懶人包** (點擊右上角直接複製)")
+                    share_text = f"✈️【{trip_name}】費用結算清單\n全團總累積花費：${total_trip_expense:,} 元\n" + "-"*20 + "\n"
+                    share_text += "\n".join(line_messages)
+                    share_text += "\n" + "-"*20 + "\n大家確認無誤後即可直接轉帳結清囉！"
+                    st.code(share_text, language="text")
                 else:
-                    st.success("🎉 目前帳目已完全平衡，大家互不相欠！")
+                    st.success("🎉 目前帳目完全平衡，大家互不相欠！")
 
 # ==================== 30 秒自動靜默同步 ====================
 time.sleep(30)
