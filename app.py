@@ -156,7 +156,7 @@ except Exception as e:
     st.error("資料庫連線失敗，請檢查 Streamlit Secrets 設定！")
     st.stop()
 
-# 輔助函式：產生 4 位大寫英文 + 3 位數字的亂數邀請碼（例如 TRIP886）
+# 輔助函式：產生 4 位大寫英文 + 3 位數字的亂數邀請碼
 def generate_invite_code():
     letters = ''.join(random.choices(string.ascii_uppercase, k=4))
     digits = ''.join(random.choices(string.digits, k=3))
@@ -190,7 +190,7 @@ def is_personal_only(expense):
     split_list = [m.strip() for m in expense.get("split_members", "").split(",") if m.strip()]
     return len(split_list) == 1 and split_list[0] == expense.get("paid_by")
 
-# 資料庫讀取操作
+# 資料庫讀取操作（不快取，每次 Rerun 均直接獲取雲端最新）
 def get_trip_info(code):
     try:
         res = supabase.table("trips").select("*").eq("trip_code", code).execute()
@@ -297,7 +297,7 @@ if not current_trip:
             
             with st.form("create_trip_form"):
                 new_trip_name = st.text_input("📍 旅程名稱", placeholder="例如：東京五天四夜、澎湖花火節")
-                new_admin_pin = st.text_input("🔒 設定管理員密碼（4~6 位數字）", type="password", max_chars=6, help="刪除成員等管理操作需要驗證此密碼")
+                new_admin_pin = st.text_input("🔒 設定管理員密碼（4~6 位數字）", type="password", max_chars=6, help="刪除成員或刪除整本記帳簿需要驗證此密碼")
                 creator_name = st.text_input("👤 你的名字（主揪）", placeholder="例如：小明")
 
                 create_submit = st.form_submit_button("✨ 立即建立並產生邀請碼", type="primary", use_container_width=True)
@@ -314,19 +314,16 @@ if not current_trip:
                     elif not clean_creator:
                         st.toast("❌ 請填寫主揪名字！", icon="❌")
                     else:
-                        # 產生不重複的 7 碼亂數邀請碼（4 英文 + 3 數字）
                         generated_code = generate_invite_code()
                         while get_trip_info(generated_code):
                             generated_code = generate_invite_code()
 
-                        # 寫入資料庫
                         supabase.table("trips").insert({
                             "trip_code": generated_code,
                             "trip_name": clean_name,
                             "admin_pin": clean_pin
                         }).execute()
 
-                        # 主揪自動加入成員清單
                         supabase.table("members").insert({
                             "trip_code": generated_code,
                             "name": clean_creator
@@ -334,11 +331,9 @@ if not current_trip:
 
                         log_activity(generated_code, "🚀 建立行程", f"主揪「{clean_creator}」建立了行程「{clean_name}」")
 
-                        # 切換進入行程
                         st.session_state["current_trip"] = generated_code
                         st.query_params["trip"] = generated_code
                         st.toast(f"🎉 建立成功！專屬邀請碼為：{generated_code}")
-                        time.sleep(0.5)
                         st.rerun()
 
     # ----------------- 方塊 2：加入分帳 -----------------
@@ -349,7 +344,6 @@ if not current_trip:
 
             join_code_input = st.text_input("🔑 輸入邀請碼 (必填)", value=query_trip, placeholder="例如：ABCD123", max_chars=7).strip().upper()
             
-            # 若已輸入邀請碼，即時連線資料庫查詢預覽
             trip_info = None
             existing_members = []
             if join_code_input:
@@ -368,7 +362,7 @@ if not current_trip:
                 join_member_name = st.text_input(
                     "👤 你的成員名稱 (選填)",
                     placeholder="若上方名單已有你的名字，可免填直接進入",
-                    help="如果已在上方成員名單中，免填即可直接進入；若為新夥伴，填入名稱將自動為您加入名單。"
+                    help="如果已在上方成員名單中，免填即可直接進入；若為新夥伴，填入名稱將自動加入名單。"
                 )
                 join_submit = st.form_submit_button("進入分帳系統", type="primary", use_container_width=True)
 
@@ -379,7 +373,6 @@ if not current_trip:
                         st.toast("❌ 邀請碼無效，無法進入！", icon="❌")
                     else:
                         clean_join_name = join_member_name.strip()
-                        # 若填寫了新成員名稱且名單中沒有，自動新增進名單
                         if clean_join_name and clean_join_name not in existing_members:
                             supabase.table("members").insert({
                                 "trip_code": join_code_input,
@@ -387,11 +380,9 @@ if not current_trip:
                             }).execute()
                             log_activity(join_code_input, "➕ 成員加入", f"新成員「{clean_join_name}」加入行程")
 
-                        # 切換進入行程
                         st.session_state["current_trip"] = join_code_input
                         st.query_params["trip"] = join_code_input
                         st.toast(f"✅ 成功進入「{trip_info['trip_name']}」！")
-                        time.sleep(0.3)
                         st.rerun()
 
     st.stop()
@@ -415,16 +406,22 @@ sorted_expenses = sorted(expenses, key=lambda x: x["id"])
 id_to_seq = {e["id"]: idx + 1 for idx, e in enumerate(sorted_expenses)}
 id_to_exp = {e["id"]: e for e in expenses}
 
-# 頂部行程導航列
+# 頂部行程導航列（整合【🔄 立即重新整理】與【🚪 離開】按鈕）
 with st.container(border=True):
-    col_t1, col_t2 = st.columns([3, 1])
+    col_t1, col_t2, col_t3 = st.columns([3, 1, 1])
     with col_t1:
         st.markdown(f"### ✈️ {trip_name}")
-        st.caption(f"🔑 專屬邀請碼：`{trip_code}`（同行好友憑此碼即可加入） ｜ ⚡ 5 秒自動靜默同步")
+        st.caption(f"🔑 專屬邀請碼：`{trip_code}` ｜ ⚡ 按鈕執行完成即時更新（背景 30 秒自動同步）")
     with col_t2:
         st.write("")
-        if st.button("🚪 離開 / 切換行程", use_container_width=True):
+        if st.button("🔄 立即重新整理", type="primary", use_container_width=True, help="點擊強制自雲端重新抓取最新資料"):
+            st.toast("🔄 已即時同步最新帳目！")
+            st.rerun()
+    with col_t3:
+        st.write("")
+        if st.button("🚪 離開行程", use_container_width=True):
             st.session_state["current_trip"] = None
+            st.session_state["confirm_del_trip"] = False
             st.query_params.clear()
             st.rerun()
 
@@ -458,7 +455,7 @@ with st.sidebar:
             label_visibility="collapsed"
         )
 
-    # 2. 新增成員卡片
+    # 2. 新增成員卡片（點擊送出立刻寫入並零延遲重整）
     with st.container(border=True):
         st.markdown("**➕ 新增成員**")
         with st.form("add_member_form", clear_on_submit=True):
@@ -470,14 +467,13 @@ with st.sidebar:
                     supabase.table("members").insert({"trip_code": trip_code, "name": clean_name}).execute()
                     log_activity(trip_code, "➕ 新增成員", f"新增行程成員「{clean_name}」")
                     st.toast(f"✅ 已成功加入成員：{clean_name}")
-                    time.sleep(0.3)
                     st.rerun()
                 elif clean_name in members:
                     st.toast(f"⚠️ 成員「{clean_name}」已存在於名單中！", icon="⚠️")
                 else:
                     st.toast("❌ 成員姓名不能為空白！", icon="❌")
 
-    # 3. 現有成員名單與【管理員密碼驗證刪除】
+    # 3. 現有成員名單與【管理員密碼驗證刪除成員】
     with st.container(border=True):
         st.markdown("**📋 目前成員清單**")
         if members:
@@ -494,10 +490,44 @@ with st.sidebar:
                     supabase.table("members").delete().eq("trip_code", trip_code).eq("name", member_to_delete).execute()
                     log_activity(trip_code, "🗑️ 刪除成員", f"管理員驗證成功，刪除成員「{member_to_delete}」")
                     st.toast(f"🗑️ 已成功刪除成員：{member_to_delete}")
-                    time.sleep(0.3)
                     st.rerun()
         else:
             st.warning("尚無成員，請在上方加入！")
+
+    # 4. 刪除整本記帳簿（管理員密碼 + 二次確認）
+    with st.container(border=True):
+        st.markdown("**⚠️ 危機管理：刪除記帳簿**")
+        with st.expander("🚨 刪除此行程帳簿"):
+            if st.session_state.get("confirm_del_trip", False):
+                st.error("⚠️ **二次確認警告**：此動作將永久抹除本行程的所有成員、全部記帳紀錄與日誌，**絕對無法復原**！確定要刪除全部記帳資訊嗎？")
+                c_del_yes, c_del_no = st.columns(2)
+                with c_del_yes:
+                    if st.button("🚨 確認刪除全部", type="primary", use_container_width=True):
+                        supabase.table("expenses").delete().eq("trip_code", trip_code).execute()
+                        supabase.table("members").delete().eq("trip_code", trip_code).execute()
+                        supabase.table("activity_logs").delete().eq("trip_code", trip_code).execute()
+                        supabase.table("trips").delete().eq("trip_code", trip_code).execute()
+                        
+                        st.session_state["confirm_del_trip"] = False
+                        st.session_state["current_trip"] = None
+                        st.query_params.clear()
+                        st.toast("🗑️ 行程記帳簿已徹底刪除！")
+                        st.rerun()
+                with c_del_no:
+                    if st.button("❌ 放棄取消", use_container_width=True):
+                        st.session_state["confirm_del_trip"] = False
+                        st.rerun()
+            else:
+                st.caption("刪除後將無法還原，需要驗證管理員密碼。")
+                trip_pin_attempt = st.text_input("🔒 請輸入管理員密碼", type="password", key="del_trip_pin_input", placeholder="4~6位管理員密碼")
+                if st.button("驗證密碼並前往下一步", type="secondary", use_container_width=True):
+                    if not trip_pin_attempt.strip():
+                        st.toast("❌ 請輸入管理員密碼！", icon="❌")
+                    elif trip_pin_attempt.strip() != admin_pin:
+                        st.toast("❌ 管理員密碼錯誤，拒絕操作！", icon="❌")
+                    else:
+                        st.session_state["confirm_del_trip"] = True
+                        st.rerun()
 
 # ==================== 橫列功能選單 ====================
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
@@ -548,7 +578,6 @@ with tab1:
                         log_activity(trip_code, "➕ 新增記帳", log_detail)
                         
                         st.toast(f"💾 記帳成功：{item_name.strip()}！")
-                        time.sleep(0.3)
                         st.rerun()
 
     # 明細清單（只篩選顯示團體分攤項目）
@@ -614,7 +643,6 @@ with tab1:
                                 
                                 st.toast("✏️ 帳目已成功更新！")
                                 st.session_state["flip_group_edit"] = not st.session_state.get("flip_group_edit", False)
-                                time.sleep(0.3)
                                 st.rerun()
 
             with col_del_card:
@@ -635,7 +663,6 @@ with tab1:
                         
                         st.toast("🗑️ 該筆帳目已成功刪除！")
                         st.session_state["flip_group_del"] = not st.session_state.get("flip_group_del", False)
-                        time.sleep(0.3)
                         st.rerun()
         else:
             st.info("目前尚無團體分攤紀錄。")
@@ -729,7 +756,6 @@ with tab2:
                                     log_activity(trip_code, "✏️ 修改自費", f"{selected_user} 修改個人自費 #{seq_num} 原「{target_p['item']}」➔「{p_new_item.strip()}」${p_new_amt:,.0f} 元")
                                     st.toast("✏️ 個人項目已更新！")
                                     st.session_state["flip_p_edit"] = not st.session_state.get("flip_p_edit", False)
-                                    time.sleep(0.3)
                                     st.rerun()
                 with col_p_del:
                     with collapsible_expander("🗑️ 刪除個人自費項目", "flip_p_del"):
@@ -746,7 +772,6 @@ with tab2:
                             log_activity(trip_code, "🗑️ 刪除自費", f"{selected_user} 刪除個人自費項目 #{seq_num}「{p_name}」")
                             st.toast("🗑️ 已成功刪除該個人項目！")
                             st.session_state["flip_p_del"] = not st.session_state.get("flip_p_del", False)
-                            time.sleep(0.3)
                             st.rerun()
             else:
                 st.info(f"目前尚無 {selected_user} 的個人純自費項目。")
@@ -889,7 +914,6 @@ with tab5:
         else:
             st.info("尚無任何操作紀錄。")
 
-# ==================== 5 秒自動靜默同步 ====================
-# 僅在進入行程儀表板後啟用定時同步；大廳首頁不觸發，保障打字體驗
-time.sleep(5)
+# ==================== 30 秒自動靜默同步 ====================
+time.sleep(30)
 st.rerun()
