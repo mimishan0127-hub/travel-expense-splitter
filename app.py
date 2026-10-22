@@ -10,89 +10,114 @@ from datetime import datetime
 # 頁面標題與佈局
 st.set_page_config(page_title="旅遊即時分帳系統", page_icon="✈️", layout="wide")
 
-# ==================== 5 種質感配色定義 ====================
+# ==================== 5 種精選質感配色 ====================
 THEMES = {
     "🌿 莫蘭迪鼠尾草綠": {
         "primary": "#4A6B5D",
-        "hover": "#3B574A",
-        "light": "#EBF2EE"
+        "hover": "#385246",
+        "light": "rgba(74, 107, 93, 0.15)"
     },
     "🍂 暖陽焦糖陶土": {
         "primary": "#C86D51",
-        "hover": "#A8543A",
-        "light": "#FAF0EC"
+        "hover": "#A5543A",
+        "light": "rgba(200, 109, 81, 0.15)"
     },
     "🌊 深海暮靄靛藍": {
-        "primary": "#3B5A75",
-        "hover": "#2C445A",
-        "light": "#EDF3F7"
+        "primary": "#2E5B82",
+        "hover": "#1F3E5A",
+        "light": "rgba(46, 91, 130, 0.15)"
     },
     "🌸 霧面煙燻胭粉": {
-        "primary": "#B35D67",
-        "hover": "#964650",
-        "light": "#F8ECEE"
+        "primary": "#B05A6F",
+        "hover": "#924456",
+        "light": "rgba(176, 90, 111, 0.15)"
     },
     "🌑 黑曜玄武岩灰": {
-        "primary": "#2C302E",
-        "hover": "#1A1C1B",
-        "light": "#EFEFEF"
+        "primary": "#2D3139",
+        "hover": "#1A1D23",
+        "light": "rgba(45, 49, 57, 0.15)"
     }
 }
 
-# 預設主題
+# 確保主題狀態初始化
 if "selected_theme" not in st.session_state:
     st.session_state["selected_theme"] = "🌿 莫蘭迪鼠尾草綠"
 
 current_theme = THEMES[st.session_state["selected_theme"]]
 
-# 動態注入自訂質感 CSS
+# 注入強效 CSS：覆寫 Streamlit 最新按鈕 DOM、分頁籤與自訂小巧編輯介面
 st.markdown(f"""
 <style>
-/* 主按鈕顏色與圓角 */
-button[kind="primary"], .stButton > button[kind="primary"] {{
+/* 1. 主按鈕（包含普通 primary 與 form_submit_button） */
+button[data-testid*="primary"],
+button[data-testid="baseButton-primary"],
+button[data-testid="stBaseButton-primary"],
+button[kind="primary"],
+.stButton > button[kind="primary"],
+div[data-testid="stFormSubmitButton"] > button {{
     background-color: {current_theme['primary']} !important;
-    border-color: {current_theme['primary']} !important;
-    color: white !important;
+    border: 1px solid {current_theme['primary']} !important;
+    color: #ffffff !important;
     border-radius: 8px !important;
     font-weight: 500 !important;
-    transition: all 0.2s ease-in-out;
 }}
-button[kind="primary"]:hover {{
+
+/* 主按鈕懸停效果 */
+button[data-testid*="primary"]:hover,
+button[data-testid="baseButton-primary"]:hover,
+button[data-testid="stBaseButton-primary"]:hover,
+button[kind="primary"]:hover,
+.stButton > button[kind="primary"]:hover,
+div[data-testid="stFormSubmitButton"] > button:hover {{
     background-color: {current_theme['hover']} !important;
     border-color: {current_theme['hover']} !important;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    color: #ffffff !important;
 }}
 
-/* 次要按鈕樣式 */
-button[kind="secondary"], .stButton > button[kind="secondary"] {{
+/* 2. 次要按鈕樣式 */
+button[data-testid*="secondary"],
+button[data-testid="baseButton-secondary"],
+button[data-testid="stBaseButton-secondary"] {{
     border-radius: 8px !important;
-    font-weight: 500 !important;
 }}
 
-/* 滑鼠懸停卡片外框高亮 */
+/* 3. 分頁籤選取時的顏色 */
+button[data-testid="stTab"][aria-selected="true"] {{
+    color: {current_theme['primary']} !important;
+    border-bottom: 2px solid {current_theme['primary']} !important;
+}}
+
+/* 4. 卡片懸停高亮邊框 */
 div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
     border-color: {current_theme['primary']} !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px {current_theme['light']} !important;
     transition: all 0.2s ease-in-out;
 }}
 
-/* 緊湊化表單與輸入框留白（縮減高度） */
-div[data-testid="stForm"] {{
-    padding: 0.6rem 0.9rem !important;
-    border-radius: 10px !important;
+/* 5. 縮減修改面板 (Compact Edit Panel) 邊距與字體大小 */
+.compact-edit-box {{
+    background-color: #fafafa;
+    border: 1px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 8px;
 }}
-div[data-testid="stForm"] .stTextInput, 
-div[data-testid="stForm"] .stNumberInput, 
-div[data-testid="stForm"] .stSelectbox, 
-div[data-testid="stForm"] .stMultiSelect {{
-    margin-bottom: -0.3rem !important;
-}}
-
-/* 標籤小巧化 */
-div[data-testid="stForm"] label {{
-    font-size: 0.85rem !important;
+.compact-edit-box label {{
+    font-size: 0.8rem !important;
     font-weight: 600 !important;
     color: #4b5563 !important;
+    margin-bottom: 2px !important;
+}}
+.compact-edit-box .stTextInput,
+.compact-edit-box .stNumberInput,
+.compact-edit-box .stSelectbox,
+.compact-edit-box .stMultiSelect {{
+    margin-bottom: -10px !important;
+}}
+
+/* 全域主色系變數 */
+:root {{
+    --primary-color: {current_theme['primary']} !important;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -122,7 +147,7 @@ def format_time(ts_str):
     except Exception:
         return str(ts_str)[:16].replace("T", " ")
 
-# 讀取資料函式
+# 讀取資料
 def get_members(code):
     res = supabase.table("members").select("name").eq("trip_code", code).execute()
     return [r["name"] for r in res.data]
@@ -184,33 +209,6 @@ if "edit_id" not in st.session_state:
 if "delete_id" not in st.session_state:
     st.session_state["delete_id"] = None
 
-# ==================== 確保存檔後 100% 消失的回呼函式 (Callbacks) ====================
-def on_save_edit(exp_id):
-    item = st.session_state.get(f"edit_item_{exp_id}", "").strip()
-    amount = float(st.session_state.get(f"edit_amt_{exp_id}", 1.0))
-    paid_by = st.session_state.get(f"edit_paid_{exp_id}")
-    split_list = st.session_state.get(f"edit_split_{exp_id}", [])
-    
-    if item and split_list:
-        supabase.table("expenses").update({
-            "item": item,
-            "amount": amount,
-            "paid_by": paid_by,
-            "split_members": ",".join(split_list)
-        }).eq("id", exp_id).execute()
-        # 強制在重新渲染前重設狀態
-        st.session_state["edit_id"] = None
-
-def on_cancel_edit():
-    st.session_state["edit_id"] = None
-
-def on_confirm_delete(exp_id):
-    supabase.table("expenses").delete().eq("id", exp_id).execute()
-    st.session_state["delete_id"] = None
-
-def on_cancel_delete():
-    st.session_state["delete_id"] = None
-
 # ==================== 頂部行程導航與儀表板 ====================
 query_trip = st.query_params.get("trip", "okinawa_trip")
 
@@ -249,18 +247,20 @@ st.write("")
 with st.sidebar:
     st.markdown("### 🎨 介面與成員管理")
     
-    # 1. 質感配色自訂區塊
+    # 1. 質感配色自訂區塊（切換即刻生效）
     with st.container(border=True):
         st.markdown("**🎨 系統按鈕配色**")
-        chosen_theme = st.selectbox(
+        def on_theme_change():
+            st.session_state["selected_theme"] = st.session_state["theme_select_key"]
+
+        st.selectbox(
             "選擇主題色調：",
             options=list(THEMES.keys()),
             index=list(THEMES.keys()).index(st.session_state["selected_theme"]),
+            key="theme_select_key",
+            on_change=on_theme_change,
             label_visibility="collapsed"
         )
-        if chosen_theme != st.session_state["selected_theme"]:
-            st.session_state["selected_theme"] = chosen_theme
-            st.rerun()
 
     # 2. 新增成員卡片
     with st.container(border=True):
@@ -339,92 +339,95 @@ with tab1:
 
     # 區塊 2：動態互動清單
     with st.container(border=True):
-        st.markdown("#### 📋 帳目記錄清單（點擊右側 ✏️ 可直接原地修改）")
+        st.markdown("#### 📋 帳目記錄清單（點擊右側 ✏️ 可直接展開修改）")
         if expenses:
             for e in expenses:
-                # 情況 A：正在行內編輯該筆（2x2 緊湊雙列佈局，大幅減少高度）
-                if st.session_state["edit_id"] == e["id"]:
-                    with st.container(border=True):
-                        st.markdown(f"✏️ **修改帳目：{e['item']}**")
+                with st.container(border=True):
+                    # 帳目基本資訊列
+                    col_info, col_price, col_actions = st.columns([4, 1.5, 1.1])
+                    with col_info:
+                        st.markdown(f"**{e['item']}**")
+                        st.caption(f"🕒 {format_time(e.get('created_at'))} ｜ 墊付：**{e['paid_by']}** ｜ 分攤：{e['split_members']}")
+                    with col_price:
+                        st.markdown(f"### ${float(e['amount']):,.0f}")
+                    with col_actions:
+                        b1, b2 = st.columns(2)
+                        with b1:
+                            if st.button("✏️", key=f"btn_edit_{e['id']}", help="修改此筆資料", use_container_width=True):
+                                # 若已經打開則關閉，否則開啟該筆
+                                st.session_state["edit_id"] = e["id"] if st.session_state["edit_id"] != e["id"] else None
+                                st.session_state["delete_id"] = None
+                                st.rerun()
+                        with b2:
+                            if st.button("🗑️", key=f"btn_del_{e['id']}", help="刪除此筆資料", use_container_width=True):
+                                st.session_state["delete_id"] = e["id"] if st.session_state["delete_id"] != e["id"] else None
+                                st.session_state["edit_id"] = None
+                                st.rerun()
+
+                    # ==================== 小巧修改介面 (點擊儲存 100% 關閉) ====================
+                    if st.session_state["edit_id"] == e["id"]:
+                        st.markdown("<div class='compact-edit-box'>", unsafe_allow_html=True)
+                        st.caption(f"✏️ 正在修改：**{e['item']}**")
+                        
                         current_split = [m.strip() for m in e["split_members"].split(",") if m.strip() in members]
                         paid_idx = members.index(e["paid_by"]) if e["paid_by"] in members else 0
-                        
-                        with st.form(f"inline_edit_{e['id']}"):
-                            # 第 1 列：項目名稱 + 金額
-                            r1_col1, r1_col2 = st.columns([3, 2])
-                            with r1_col1:
-                                st.text_input("項目名稱", value=e["item"], key=f"edit_item_{e['id']}")
-                            with r1_col2:
-                                st.number_input("金額", min_value=1.0, value=float(e["amount"]), step=50.0, key=f"edit_amt_{e['id']}")
-                            
-                            # 第 2 列：代墊人 + 分攤成員
-                            r2_col1, r2_col2 = st.columns([2, 3])
-                            with r2_col1:
-                                st.selectbox("代墊人", options=members, index=paid_idx, key=f"edit_paid_{e['id']}")
-                            with r2_col2:
-                                st.multiselect("分攤名單", options=members, default=current_split, key=f"edit_split_{e['id']}")
-                            
-                            # 第 3 列：按鈕
-                            st.write("")
-                            c_sv, c_cl = st.columns(2)
-                            with c_sv:
-                                st.form_submit_button(
-                                    "💾 儲存更新",
-                                    type="primary",
-                                    use_container_width=True,
-                                    on_click=on_save_edit,
-                                    args=(e["id"],)
-                                )
-                            with c_cl:
-                                st.form_submit_button(
-                                    "❌ 取消",
-                                    use_container_width=True,
-                                    on_click=on_cancel_edit
-                                )
 
-                # 情況 B：正在確認刪除該筆
-                elif st.session_state["delete_id"] == e["id"]:
-                    with st.container(border=True):
-                        st.warning(f"⚠️ 確定要刪除 **{e['item']}**（金額：${float(e['amount']):,.0f} 元）嗎？")
-                        c_yes, c_no = st.columns(2)
-                        with c_yes:
-                            st.button(
-                                "🗑️ 確認永久刪除",
-                                key=f"conf_del_{e['id']}",
-                                type="primary",
-                                use_container_width=True,
-                                on_click=on_confirm_delete,
-                                args=(e["id"],)
-                            )
-                        with c_no:
-                            st.button(
-                                "取消",
-                                key=f"cancel_del_{e['id']}",
-                                use_container_width=True,
-                                on_click=on_cancel_delete
-                            )
+                        # 第 1 列：項目名稱 + 金額
+                        r1_c1, r1_c2 = st.columns([3, 2])
+                        with r1_c1:
+                            edit_item = st.text_input("項目名稱", value=e["item"], key=f"val_item_{e['id']}")
+                        with r1_c2:
+                            edit_amt = st.number_input("金額", min_value=1.0, value=float(e["amount"]), step=50.0, key=f"val_amt_{e['id']}")
 
-                # 情況 C：平時正常顯示的卡片
-                else:
-                    with st.container(border=True):
-                        col_info, col_price, col_actions = st.columns([4, 1.5, 1.1])
-                        with col_info:
-                            st.markdown(f"**{e['item']}**")
-                            st.caption(f"🕒 {format_time(e.get('created_at'))} ｜ 墊付：**{e['paid_by']}** ｜ 分攤：{e['split_members']}")
-                        with col_price:
-                            st.markdown(f"### ${float(e['amount']):,.0f}")
-                        with col_actions:
-                            b1, b2 = st.columns(2)
-                            with b1:
-                                if st.button("✏️", key=f"btn_edit_{e['id']}", help="修改此筆", use_container_width=True):
-                                    st.session_state["edit_id"] = e["id"]
-                                    st.session_state["delete_id"] = None
-                                    st.rerun()
-                            with b2:
-                                if st.button("🗑️", key=f"btn_del_{e['id']}", help="刪除此筆", use_container_width=True):
-                                    st.session_state["delete_id"] = e["id"]
+                        # 第 2 列：代墊人 + 分攤名單
+                        r2_c1, r2_c2 = st.columns([2, 3])
+                        with r2_c1:
+                            edit_paid = st.selectbox("代墊人", options=members, index=paid_idx, key=f"val_paid_{e['id']}")
+                        with r2_c2:
+                            edit_split = st.multiselect("分攤名單", options=members, default=current_split, key=f"val_split_{e['id']}")
+
+                        # 第 3 列：直接按鈕（非 form，即按即送並即刻關閉）
+                        st.write("")
+                        btn_c1, btn_c2 = st.columns(2)
+                        with btn_c1:
+                            if st.button("💾 儲存更新", key=f"act_save_{e['id']}", type="primary", use_container_width=True):
+                                if edit_item.strip() and edit_split:
+                                    supabase.table("expenses").update({
+                                        "item": edit_item.strip(),
+                                        "amount": edit_amt,
+                                        "paid_by": edit_paid,
+                                        "split_members": ",".join(edit_split)
+                                    }).eq("id", e["id"]).execute()
+                                    # 關鍵修復：立即歸零狀態並重新載入，保證介面完全消失
                                     st.session_state["edit_id"] = None
+                                    st.success("已成功更新！")
                                     st.rerun()
+                                else:
+                                    st.error("項目與分攤名單不可為空！")
+                        with btn_c2:
+                            if st.button("❌ 取消", key=f"act_cancel_{e['id']}", use_container_width=True):
+                                st.session_state["edit_id"] = None
+                                st.rerun()
+
+                        st.markdown("</div>", unsafe_allow_html=True)
+
+                    # ==================== 二次確認刪除介面 ====================
+                    elif st.session_state["delete_id"] == e["id"]:
+                        st.markdown("<div class='compact-edit-box'>", unsafe_allow_html=True)
+                        st.warning(f"⚠️ 確定要刪除 **{e['item']}**（金額：${float(e['amount']):,.0f} 元）嗎？此動作無法復原！")
+                        del_c1, del_c2 = st.columns(2)
+                        with del_c1:
+                            if st.button("🗑️ 確認永久刪除", key=f"act_conf_del_{e['id']}", type="primary", use_container_width=True):
+                                supabase.table("expenses").delete().eq("id", e["id"]).execute()
+                                st.session_state["delete_id"] = None
+                                st.success("已刪除！")
+                                st.rerun()
+                        with del_c2:
+                            if st.button("取消", key=f"act_cancel_del_{e['id']}", use_container_width=True):
+                                st.session_state["delete_id"] = None
+                                st.rerun()
+                        st.markdown("</div>", unsafe_allow_html=True)
+
         else:
             st.info("目前尚無消費紀錄。")
 
@@ -593,8 +596,8 @@ with tab4:
         st.dataframe(pd.DataFrame(table_rows), use_container_width=True, hide_index=True)
 
 # ==================== 自動定時靜默同步 ====================
-# 當使用者正在進行行內編輯或確認刪除時，自動暫停定時重整，避免打字被中斷
-is_user_busy = (st.session_state["edit_id"] is not None) or (st.session_state["delete_id"] is not None)
+# 當使用者正在進行修改或確認刪除時，自動暫停定時重整，避免打字被中斷
+is_user_busy = (st.session_state.get("edit_id") is not None) or (st.session_state.get("delete_id") is not None)
 if not is_user_busy:
     time.sleep(5)
     st.rerun()
