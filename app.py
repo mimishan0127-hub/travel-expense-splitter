@@ -198,11 +198,9 @@ except Exception as e:
     st.error("資料庫連線失敗，請檢查 Streamlit Secrets 設定！")
     st.stop()
 
-# 密碼雜湊加密
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
-# 產生邀請碼
 def generate_code(prefix=""):
     letters = ''.join(random.choices(string.ascii_uppercase, k=4))
     digits = ''.join(random.choices(string.digits, k=3))
@@ -233,7 +231,7 @@ def is_personal_only(expense):
     split_list = [m.strip() for m in expense.get("split_members", "").split(",") if m.strip()]
     return len(split_list) == 1 and split_list[0] == expense.get("paid_by")
 
-# 資料庫操作：使用者與關聯
+# 資料庫操作
 def get_user_by_email(email):
     try:
         res = supabase.table("app_users").select("*").eq("email", email.strip().lower()).execute()
@@ -259,7 +257,6 @@ def bind_book_to_user(email, b_type, b_code, b_name):
     except Exception:
         pass
 
-# 資料庫查詢：行程 / 帳簿
 def get_trip_info(code):
     try:
         res = supabase.table("trips").select("*").eq("trip_code", code).execute()
@@ -299,7 +296,6 @@ def get_personal_categories(book_code, r_type):
     except Exception:
         return []
 
-# 抓取台銀匯率
 @st.cache_data(ttl=1800)
 def fetch_bot_rates():
     url = "https://rate.bot.com.tw/xrt/flcsv/0/day"
@@ -337,26 +333,43 @@ if "current_code" not in st.session_state:
 if "confirm_del_p_active" not in st.session_state:
     st.session_state["confirm_del_p_active"] = False
 
-# URL 參數登入檢查
+# ==============================================================================
+# 【核心升級】URL 快速免登入檢查（只要帶有 ?trip=... 直接放行進入共同分帳）
+# ==============================================================================
 url_trip = st.query_params.get("trip", "").strip().upper()
 url_book = st.query_params.get("book", "").strip().upper()
 
+if url_trip and st.session_state["current_code"] != url_trip:
+    t_check = get_trip_info(url_trip)
+    if t_check:
+        st.session_state["current_book_type"] = "group"
+        st.session_state["current_code"] = url_trip
+    else:
+        st.toast("⚠️ 邀請連結無效或該行程已被刪除！")
+        st.query_params.clear()
+
+elif url_book and st.session_state["current_code"] != url_book and st.session_state["auth_user"]:
+    b_check = get_trip_info(url_book)
+    if b_check:
+        st.session_state["current_book_type"] = "personal"
+        st.session_state["current_code"] = url_book
+
 
 # ==============================================================================
-# 第一層：未登入時的「身分認證」頁面（登入 / 註冊）
+# 第一層：未進入共同行程 且 未登入帳號時的 首頁畫面
 # ==============================================================================
-if st.session_state["auth_user"] is None:
-    st.markdown("<h2 style='text-align: center; margin-bottom: 0.3rem; font-weight: 800;'>🔐 個人/共同分帳記事簿</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #64748b; margin-bottom: 2rem; font-size: 0.95rem;'>登入後自動連動並記憶您所有的個人與共同分帳本，不必再死記代碼！</p>", unsafe_allow_html=True)
+if st.session_state["current_code"] is None and st.session_state["auth_user"] is None:
+    st.markdown("<h2 style='text-align: center; margin-bottom: 0.3rem; font-weight: 800;'>📒 個人/共同分帳記事簿</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748b; margin-bottom: 2rem; font-size: 0.95rem;'>點擊好友分享的連結可直接記帳；主揪或管理個人帳本請由此登入</p>", unsafe_allow_html=True)
 
     with st.container(border=True):
-        tab_login, tab_signup = st.tabs(["🔑 會員登入", "✨ 免費註冊新帳號"])
+        tab_login, tab_signup = st.tabs(["🔑 會員登入 / 主揪管理", "✨ 免費註冊新帳號"])
 
         # 登入
         with tab_login:
             with st.form("login_form"):
                 l_email = st.text_input("電子信箱 (Email)", placeholder="name@example.com").strip().lower()
-                l_pwd = st.text_input("密碼", type="password", placeholder="輸入登入密碼")
+                l_pwd = st.text_input("密碼", type="password", placeholder="輸入密碼")
                 
                 if st.form_submit_button("立即登入", type="primary", use_container_width=True):
                     if not l_email or not l_pwd:
@@ -369,12 +382,6 @@ if st.session_state["auth_user"] is None:
                             st.toast("❌ 密碼錯誤！")
                         else:
                             st.session_state["auth_user"] = {"email": user["email"], "name": user["name"]}
-                            if url_trip:
-                                st.session_state["current_book_type"] = "group"
-                                st.session_state["current_code"] = url_trip
-                            elif url_book:
-                                st.session_state["current_book_type"] = "personal"
-                                st.session_state["current_code"] = url_book
                             st.toast(f"🎉 歡迎回來，{user['name']}！")
                             st.rerun()
 
@@ -406,21 +413,35 @@ if st.session_state["auth_user"] is None:
                         st.toast(f"🎉 註冊成功！歡迎使用，{clean_name}！")
                         st.rerun()
 
+    # 快捷通關（免登入直接輸入邀請碼進入）
+    with st.container(border=True):
+        st.markdown("##### 🚀 手邊有好友的邀請碼？（免登入直接進入）")
+        c_quick1, c_quick2 = st.columns([3, 1])
+        with c_quick1:
+            quick_code_in = st.text_input("輸入 7 碼邀請代號", placeholder="例如：TRIP888", label_visibility="collapsed").strip().upper()
+        with c_quick2:
+            if st.button("直接進入", type="secondary", use_container_width=True):
+                if quick_code_in and get_trip_info(quick_code_in):
+                    st.query_params["trip"] = quick_code_in
+                    st.rerun()
+                else:
+                    st.toast("❌ 查無此邀請碼！")
+
     st.stop()
 
 
 # ==============================================================================
-# 第二層：已登入！「個人專屬帳本大廳」（自動記憶的所有帳本清單）
+# 第二層：已登入主揪的「個人帳本與行程總覽大廳」
 # ==============================================================================
-current_user = st.session_state["auth_user"]
-user_email = current_user["email"]
-user_name = current_user["name"]
+if st.session_state["current_code"] is None and st.session_state["auth_user"] is not None:
+    current_user = st.session_state["auth_user"]
+    user_email = current_user["email"]
+    user_name = current_user["name"]
 
-if st.session_state["current_code"] is None:
     col_u1, col_u2 = st.columns([4, 1.2])
     with col_u1:
         st.markdown(f"### 👋 哈囉，{user_name}！")
-        st.caption(f"📧 帳號：`{user_email}` ｜ 您的所有個人與共同帳本均已在此為您自動同步！")
+        st.caption(f"📧 帳號：`{user_email}` ｜ 您的所有個人與共同帳本均在此自動同步")
     with col_u2:
         st.write("")
         if st.button("🚪 登出帳號", use_container_width=True):
@@ -439,11 +460,11 @@ if st.session_state["current_code"] is None:
 
     col_lobby_p, col_lobby_g = st.columns(2)
 
-    # ---------------- 區塊 1：我的個人獨立帳本 ----------------
+    # 個人帳本
     with col_lobby_p:
         with st.container(border=True):
             st.markdown("#### 👤 我的個人帳本")
-            st.caption("專屬於您的日常私密收支管家，無其他人分攤。")
+            st.caption("專屬的日常收支管家，無其他人分攤。")
             
             if personal_books:
                 for b in personal_books:
@@ -459,7 +480,7 @@ if st.session_state["current_code"] is None:
                             st.rerun()
                     st.markdown("<hr style='margin: 6px 0; border: none; border-top: 1px dashed #e2e8f0;'>", unsafe_allow_html=True)
             else:
-                st.info("尚無個人帳本，點擊下方立即建立第一本！")
+                st.info("尚無個人帳本，點擊下方立即建立！")
 
             c_p_op1, c_p_op2 = st.columns(2)
             with c_p_op1:
@@ -511,11 +532,11 @@ if st.session_state["current_code"] is None:
                             st.toast("🗑️ 已成功刪除該個人帳本！")
                             st.rerun()
 
-    # ---------------- 區塊 2：我的共同旅遊分帳 ----------------
+    # 共同旅遊分帳
     with col_lobby_g:
         with st.container(border=True):
             st.markdown("#### 👥 我的共同分帳行程")
-            st.caption("同行好友出遊記帳、即時結算還款與匯率工具。")
+            st.caption("出遊記帳、即時結算還款與直接分享網址。")
             
             if group_books:
                 for b in group_books:
@@ -531,85 +552,62 @@ if st.session_state["current_code"] is None:
                             st.rerun()
                     st.markdown("<hr style='margin: 6px 0; border: none; border-top: 1px dashed #e2e8f0;'>", unsafe_allow_html=True)
             else:
-                st.info("尚無共同分帳，可發起新行程或輸入邀請碼加入！")
+                st.info("尚無共同分帳，可發起新旅程！")
 
-            c_cg1, c_cg2 = st.columns(2)
-            with c_cg1:
-                with st.expander("➕ 發起新旅程"):
-                    with st.form("create_new_group_trip"):
-                        ng_name = st.text_input("旅程名稱", placeholder="例如：沖繩五天四夜")
-                        ng_pin = st.text_input("管理密碼 (4~6位)", type="password", max_chars=6)
-                        if st.form_submit_button("建立行程", type="primary", use_container_width=True):
-                            c_ng_name = ng_name.strip()
-                            if not c_ng_name:
-                                st.toast("❌ 請填寫旅程名稱！")
-                            elif not re.fullmatch(r"^\d{4,6}$", ng_pin.strip()):
-                                st.toast("❌ 密碼需為 4 ~ 6 位純數字！")
-                            else:
-                                ng_code = generate_code()
-                                supabase.table("trips").insert({
-                                    "trip_code": ng_code,
-                                    "trip_name": c_ng_name,
-                                    "admin_pin": ng_pin.strip()
-                                }).execute()
-                                supabase.table("members").insert({
-                                    "trip_code": ng_code,
-                                    "name": user_name
-                                }).execute()
-                                bind_book_to_user(user_email, "group", ng_code, c_ng_name)
-                                log_activity(ng_code, "建立行程", f"{user_name} 建立了「{c_ng_name}」")
-                                st.session_state["current_book_type"] = "group"
-                                st.session_state["current_code"] = ng_code
-                                st.query_params["trip"] = ng_code
-                                st.toast(f"🎉 成功建立！邀請碼：{ng_code}")
-                                st.rerun()
-
-            with c_cg2:
-                with st.expander("🚀 輸入邀請碼加入"):
-                    with st.form("join_existing_group_trip"):
-                        jg_code = st.text_input("7 碼邀請碼", placeholder="例如：TRIP888").strip().upper()
-                        if st.form_submit_button("加入並綁定", type="primary", use_container_width=True):
-                            if not jg_code:
-                                st.toast("❌ 請填寫邀請碼！")
-                            else:
-                                t_info = get_trip_info(jg_code)
-                                if not t_info:
-                                    st.toast("❌ 查無此邀請碼！")
-                                else:
-                                    mems = get_members(jg_code)
-                                    if user_name not in mems:
-                                        supabase.table("members").insert({"trip_code": jg_code, "name": user_name}).execute()
-                                        log_activity(jg_code, "成員加入", f"{user_name} 加入行程")
-                                    bind_book_to_user(user_email, "group", jg_code, t_info["trip_name"])
-                                    st.session_state["current_book_type"] = "group"
-                                    st.session_state["current_code"] = jg_code
-                                    st.query_params["trip"] = jg_code
-                                    st.toast(f"✅ 成功加入「{t_info['trip_name']}」！")
-                                    st.rerun()
+            with st.expander("➕ 發起新旅程"):
+                with st.form("create_new_group_trip"):
+                    ng_name = st.text_input("旅程名稱", placeholder="例如：沖繩五天四夜")
+                    ng_pin = st.text_input("管理密碼 (4~6位)", type="password", max_chars=6)
+                    if st.form_submit_button("建立行程", type="primary", use_container_width=True):
+                        c_ng_name = ng_name.strip()
+                        if not c_ng_name:
+                            st.toast("❌ 請填寫旅程名稱！")
+                        elif not re.fullmatch(r"^\d{4,6}$", ng_pin.strip()):
+                            st.toast("❌ 密碼需為 4 ~ 6 位純數字！")
+                        else:
+                            ng_code = generate_code()
+                            supabase.table("trips").insert({
+                                "trip_code": ng_code,
+                                "trip_name": c_ng_name,
+                                "admin_pin": ng_pin.strip()
+                            }).execute()
+                            supabase.table("members").insert({
+                                "trip_code": ng_code,
+                                "name": user_name
+                            }).execute()
+                            bind_book_to_user(user_email, "group", ng_code, c_ng_name)
+                            log_activity(ng_code, "建立行程", f"{user_name} 建立了「{c_ng_name}」")
+                            st.session_state["current_book_type"] = "group"
+                            st.session_state["current_code"] = ng_code
+                            st.query_params["trip"] = ng_code
+                            st.toast(f"🎉 成功建立！邀請碼：{ng_code}")
+                            st.rerun()
 
     st.stop()
 
 
 # ==============================================================================
-# 第三層 A：個人獨立記帳主畫面 (Personal Book Active)
+# 第三層 A：個人獨立記帳主畫面 (Personal Book)
 # ==============================================================================
 if st.session_state["current_book_type"] == "personal":
     book_code = st.session_state["current_code"]
     book_info = get_trip_info(book_code)
     book_name = book_info["trip_name"] if book_info else "個人記帳本"
     
-    bind_book_to_user(user_email, "personal", book_code, book_name)
+    current_u = st.session_state.get("auth_user")
+    u_display = current_u["name"] if current_u else "個人"
+    if current_u:
+        bind_book_to_user(current_u["email"], "personal", book_code, book_name)
 
     p_records = get_personal_records(book_code)
     total_income = sum(int(round(float(r["amount"]))) for r in p_records if r["record_type"] == "income")
     total_expense = sum(int(round(float(r["amount"]))) for r in p_records if r["record_type"] == "expense")
     net_surplus = total_income - total_expense
 
-    # 頂部導航
     col_pb1, col_pb2 = st.columns([3.8, 1.5])
     with col_pb1:
         st.markdown(f"### 📖 {book_name}")
-        st.caption(f"👤 擁有者：`{user_name}` ｜ 帳本代碼：`{book_code}`")
+        st.caption(f"👤 擁有者：`{u_display}` ｜ 帳本代碼：`{book_code}`")
     with col_pb2:
         col_pbtn1, col_pbtn2 = st.columns(2)
         with col_pbtn1:
@@ -624,7 +622,6 @@ if st.session_state["current_book_type"] == "personal":
                 st.query_params.clear()
                 st.rerun()
 
-    # 正上方數據指標
     c_inc, c_exp, c_sur = st.columns(3)
     with c_inc:
         st.metric("💰 總收入", f"${total_income:,}")
@@ -640,7 +637,6 @@ if st.session_state["current_book_type"] == "personal":
 
     st.write("")
 
-    # 側邊欄：純淨個人設定（移除換匯工具，加入名稱編輯與刪除）
     with st.sidebar:
         st.markdown("### ⚙️ 個人帳本設定")
         with st.container(border=True):
@@ -649,7 +645,6 @@ if st.session_state["current_book_type"] == "personal":
                 st.session_state["theme_name"] = st.session_state["theme_selector"]
             st.selectbox("選擇主題色調：", options=list(THEMES.keys()), index=list(THEMES.keys()).index(st.session_state["theme_name"]), key="theme_selector", on_change=on_theme_change, label_visibility="collapsed")
 
-        # 【重點更新】個人帳本名稱修改與刪除設定
         with st.container(border=True):
             st.markdown("**📖 帳本設定與管理**")
             with st.expander("✏️ 修改帳本名稱"):
@@ -658,20 +653,22 @@ if st.session_state["current_book_type"] == "personal":
                     if st.form_submit_button("💾 儲存新名稱", type="primary", use_container_width=True):
                         if new_active_pname.strip():
                             supabase.table("trips").update({"trip_name": new_active_pname.strip()}).eq("trip_code", book_code).execute()
-                            supabase.table("user_books").update({"book_name": new_active_pname.strip()}).eq("book_code", book_code).execute()
+                            if current_u:
+                                supabase.table("user_books").update({"book_name": new_active_pname.strip()}).eq("book_code", book_code).execute()
                             st.toast("✏️ 帳本名稱已更新！")
                             st.rerun()
 
             with st.expander("🗑️ 刪除此個人帳本"):
                 if st.session_state["confirm_del_p_active"]:
-                    st.error("⚠️ 確定要永久銷毀此個人帳本與所有收支紀錄嗎？此操作無法復原！")
+                    st.error("⚠️ 確定要永久銷毀此個人帳本與所有收支紀錄嗎？")
                     c_pdel_y, c_pdel_n = st.columns(2)
                     with c_pdel_y:
                         if st.button("🚨 確認刪除", type="primary", use_container_width=True):
                             supabase.table("personal_records").delete().eq("book_code", book_code).execute()
                             supabase.table("personal_categories").delete().eq("book_code", book_code).execute()
                             supabase.table("trips").delete().eq("trip_code", book_code).execute()
-                            supabase.table("user_books").delete().eq("book_code", book_code).execute()
+                            if current_u:
+                                supabase.table("user_books").delete().eq("book_code", book_code).execute()
                             st.session_state["current_code"] = None
                             st.session_state["current_book_type"] = None
                             st.session_state["confirm_del_p_active"] = False
@@ -683,12 +680,10 @@ if st.session_state["current_book_type"] == "personal":
                             st.session_state["confirm_del_p_active"] = False
                             st.rerun()
                 else:
-                    st.caption("銷毀後資料將無法復原。")
                     if st.button("前往刪除確認", type="secondary", use_container_width=True):
                         st.session_state["confirm_del_p_active"] = True
                         st.rerun()
 
-    # 類別設定
     default_expense_cats = ["食物", "購物", "家用", "交通", "醫療", "娛樂", "儲蓄", "保險", "其他"]
     default_income_cats = ["薪水", "獎金", "回饋", "股息"]
     custom_exp_cats = get_personal_categories(book_code, "expense")
@@ -698,14 +693,14 @@ if st.session_state["current_book_type"] == "personal":
 
     p_tab1, p_tab2 = st.tabs(["💸 支出記帳", "💰 收入記帳"])
 
-    # 支出記帳
+    # 支出
     with p_tab1:
         with st.container(border=True):
             st.markdown("##### ➕ 新增支出消費")
             with st.form("add_personal_expense_form", clear_on_submit=True):
                 r1_c1, r1_c2 = st.columns([3, 2])
                 with r1_c1:
-                    exp_item = st.text_input("消費名稱", placeholder="例如：午餐便當、家樂福採買、高鐵票")
+                    exp_item = st.text_input("消費名稱", placeholder="例如：午餐便當、高鐵票")
                 with r1_c2:
                     exp_amt = st.number_input("金額 (NTD)", min_value=1, step=50, format="%d")
                 r2_c1, r2_c2 = st.columns(2)
@@ -732,7 +727,7 @@ if st.session_state["current_book_type"] == "personal":
         with st.expander("🏷️ 管理支出類別 (新增或刪除自訂類別)"):
             c_add_ec1, c_add_ec2 = st.columns([3, 1])
             with c_add_ec1:
-                new_ecat = st.text_input("新增自訂支出類別", placeholder="例如：寵物、健身、訂閱", key="new_ecat_input")
+                new_ecat = st.text_input("新增自訂支出類別", placeholder="例如：寵物、健身", key="new_ecat_input")
             with c_add_ec2:
                 st.write("")
                 if st.button("➕ 新增類別", key="btn_add_ecat", use_container_width=True):
@@ -743,7 +738,7 @@ if st.session_state["current_book_type"] == "personal":
                         st.rerun()
 
             if custom_exp_cats:
-                del_ecat_target = st.selectbox("選擇要刪除的自訂類別：", options=custom_exp_cats, key="sel_del_ecat")
+                del_ecat_target = st.selectbox("選擇要刪除的類別：", options=custom_exp_cats, key="sel_del_ecat")
                 if st.button("🗑️ 刪除該自訂類別", key="btn_del_ecat"):
                     supabase.table("personal_categories").delete().eq("book_code", book_code).eq("record_type", "expense").eq("name", del_ecat_target).execute()
                     st.toast(f"🗑️ 已刪除類別：{del_ecat_target}")
@@ -786,14 +781,14 @@ if st.session_state["current_book_type"] == "personal":
             else:
                 st.caption("尚無任何支出記錄。")
 
-    # 收入記帳
+    # 收入
     with p_tab2:
         with st.container(border=True):
             st.markdown("##### ➕ 新增收入項目")
             with st.form("add_personal_income_form", clear_on_submit=True):
                 r1_c1, r1_c2 = st.columns([3, 2])
                 with r1_c1:
-                    inc_item = st.text_input("收入名稱", placeholder="例如：十月份薪資、業績獎金、發票中獎")
+                    inc_item = st.text_input("收入名稱", placeholder="例如：薪水、獎金")
                 with r1_c2:
                     inc_amt = st.number_input("金額 (NTD)", min_value=1, step=100, format="%d")
                 r2_c1, r2_c2 = st.columns(2)
@@ -820,7 +815,7 @@ if st.session_state["current_book_type"] == "personal":
         with st.expander("🏷️ 管理收入類別 (新增或刪除自訂類別)"):
             c_add_ic1, c_add_ic2 = st.columns([3, 1])
             with c_add_ic1:
-                new_icat = st.text_input("新增自訂收入類別", placeholder="例如：兼職、租金、外快", key="new_icat_input")
+                new_icat = st.text_input("新增自訂收入類別", placeholder="例如：兼職、股利", key="new_icat_input")
             with c_add_ic2:
                 st.write("")
                 if st.button("➕ 新增類別", key="btn_add_icat", use_container_width=True):
@@ -878,19 +873,31 @@ if st.session_state["current_book_type"] == "personal":
 
 
 # ==============================================================================
-# 第三層 B：共同旅遊分帳主畫面 (Group Splitter Active)
+# 第三層 B：共同旅遊分帳主畫面（支援好友點網址免登入直達！）
 # ==============================================================================
 trip_code = st.session_state["current_code"]
 trip_info = get_trip_info(trip_code)
 trip_name = trip_info["trip_name"] if trip_info else trip_code
 admin_pin = trip_info["admin_pin"] if trip_info else ""
 
-bind_book_to_user(user_email, "group", trip_code, trip_name)
+# 若當前使用者有登入帳號，自動將本行程綁定到他的大廳記憶中
+current_logged_user = st.session_state.get("auth_user")
+if current_logged_user:
+    bind_book_to_user(current_logged_user["email"], "group", trip_code, trip_name)
 
 members = get_members(trip_code)
-if user_name not in members:
-    supabase.table("members").insert({"trip_code": trip_code, "name": user_name}).execute()
-    members = get_members(trip_code)
+
+# 訪客模式身分處理
+if current_logged_user:
+    active_operator_name = current_logged_user["name"]
+    if active_operator_name not in members:
+        supabase.table("members").insert({"trip_code": trip_code, "name": active_operator_name}).execute()
+        members = get_members(trip_code)
+else:
+    # 透過分享連結進來的免登入訪客
+    if "guest_operator_name" not in st.session_state or not st.session_state["guest_operator_name"]:
+        st.session_state["guest_operator_name"] = members[0] if members else ""
+    active_operator_name = st.session_state["guest_operator_name"]
 
 expenses = get_expenses(trip_code)
 logs = get_logs(trip_code)
@@ -901,7 +908,7 @@ id_to_exp = {e["id"]: e for e in expenses}
 col_h1, col_h2 = st.columns([3.5, 1.8])
 with col_h1:
     st.markdown(f"### ✈️ {trip_name}")
-    st.caption(f"🔑 邀請碼：**`{trip_code}`** ｜ 目前操作者：`{user_name}` ｜ 30 秒自動同步")
+    st.caption(f"🔑 邀請碼：**`{trip_code}`** ｜ 目前操作者：`{active_operator_name if active_operator_name else '訪客'}` ｜ 30 秒自動同步")
 with col_h2:
     col_btn1, col_btn2, col_btn3 = st.columns(3)
     with col_btn1:
@@ -909,12 +916,41 @@ with col_h2:
             st.toast("🔄 已同步最新資料")
             st.rerun()
     with col_btn2:
-        with st.popover("🔗", help="分享行程邀請碼", use_container_width=True):
+        # 【重點升級】一鍵複製完整免登入直達網址
+        with st.popover("🔗", help="分享行程邀請連結", use_container_width=True):
             st.markdown(f"**📤 分享【{trip_name}】**")
-            st.caption("專屬邀請碼：")
-            st.code(trip_code, language="text")
+            st.caption("同行好友點擊專屬連結即可**直接免登入進入**開始記帳：")
+            
+            # 使用瀏覽器原生 JS 一鍵複製當前帶有 ?trip=... 的完整 URL
+            st.components.v1.html(f"""
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button id="copyUrlBtn" style="
+                    background-color:{current_theme['primary']}; 
+                    color:white; 
+                    border:none; 
+                    padding:10px 14px; 
+                    border-radius:8px; 
+                    font-weight:600; 
+                    cursor:pointer;
+                    width:100%;">📋 一鍵複製專屬直達網址</button>
+                <div id="copyNotice" style="font-size:12px; color:#22c55e; display:none; text-align:center;">✅ 專屬網址已複製至剪貼簿！</div>
+            </div>
+            <script>
+                document.getElementById('copyUrlBtn').addEventListener('click', function() {{
+                    const fullUrl = window.location.origin + window.location.pathname + '?trip={trip_code}';
+                    navigator.clipboard.writeText(fullUrl).then(function() {{
+                        document.getElementById('copyNotice').style.display = 'block';
+                        setTimeout(() => {{
+                            document.getElementById('copyNotice').style.display = 'none';
+                        }}, 2500);
+                    }});
+                }});
+            </script>
+            """, height=70)
+
+            st.caption(f"或者直接複製 7 碼邀請碼：`{trip_code}`")
     with col_btn3:
-        if st.button("⬅️ 總覽", help="返回我的帳本大廳", use_container_width=True):
+        if st.button("🚪", help="離開切換行程", use_container_width=True):
             st.session_state["current_code"] = None
             st.session_state["current_book_type"] = None
             st.query_params.clear()
@@ -932,9 +968,23 @@ with c_m3:
 
 st.write("")
 
-# 側邊欄（共同分帳繼續保留台灣銀行匯率換算）
+# 側邊欄（共同分帳）
 with st.sidebar:
     st.markdown("### ⚙️ 工具與成員管理")
+    
+    # 訪客 / 會員 身分切換
+    with st.container(border=True):
+        st.markdown("**👤 目前操作者（我是誰）**")
+        if members:
+            # 支援免登入訪客直接從名單中點擊自己
+            cur_idx = members.index(active_operator_name) if active_operator_name in members else 0
+            sel_op = st.selectbox("選取我的姓名：", options=members, index=cur_idx, help="記帳時會自動將代墊人預設為您")
+            if sel_op != active_operator_name:
+                st.session_state["guest_operator_name"] = sel_op
+                st.rerun()
+        else:
+            st.caption("尚未有成員，請先在下方加入。")
+
     with st.container(border=True):
         st.markdown("**🎨 介面主題色**")
         def on_theme_change():
@@ -950,6 +1000,7 @@ with st.sidebar:
                 if clean_name and clean_name not in members:
                     supabase.table("members").insert({"trip_code": trip_code, "name": clean_name}).execute()
                     log_activity(trip_code, "新增成員", f"新增成員「{clean_name}」")
+                    st.session_state["guest_operator_name"] = clean_name
                     st.toast(f"✅ 已加入成員：{clean_name}")
                     st.rerun()
                 elif clean_name in members:
@@ -977,7 +1028,7 @@ with st.sidebar:
                         st.toast(f"🗑️ 已刪除：{member_to_delete}")
                         st.rerun()
 
-    # 共同分帳保留匯率工具
+    # 共同分帳保留匯率小工具
     with st.container(border=True):
         st.markdown("**💱 台灣銀行牌告匯率**")
         bot_rates = fetch_bot_rates()
@@ -1021,8 +1072,8 @@ with tab1:
 
                 c_payer, c_split = st.columns(2)
                 with c_payer:
-                    current_idx = members.index(user_name) if user_name in members else 0
-                    paid_by = st.selectbox("誰先付錢？", options=members, index=current_idx)
+                    payer_def_idx = members.index(active_operator_name) if active_operator_name in members else 0
+                    paid_by = st.selectbox("誰先付錢？", options=members, index=payer_def_idx)
                 with c_split:
                     split_with = st.multiselect("誰要分攤？", options=members, default=members)
 
@@ -1105,7 +1156,7 @@ with tab2:
         with st.container(border=True):
             col_u_sel, _ = st.columns([1.5, 2])
             with col_u_sel:
-                default_sel_idx = members.index(user_name) if user_name in members else 0
+                default_sel_idx = members.index(active_operator_name) if active_operator_name in members else 0
                 selected_user = st.selectbox("切換查看成員：", options=members, index=default_sel_idx)
 
             total_paid_by_user = 0
