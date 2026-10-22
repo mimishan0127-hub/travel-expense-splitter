@@ -259,7 +259,7 @@ def fetch_bot_rates():
         status = "連線逾時，已使用備用匯率"
     return rates, status
 
-# ==================== 選單自動收合計數器（無幽靈殘像版） ====================
+# 選單自動收合計數器
 if "cnt_group_edit" not in st.session_state:
     st.session_state["cnt_group_edit"] = 0
 if "cnt_group_del" not in st.session_state:
@@ -396,7 +396,7 @@ admin_pin = trip_info["admin_pin"] if trip_info else "0000"
 members = get_members(trip_code)
 expenses = get_expenses(trip_code)
 logs = get_logs(trip_code)
-total_trip_expense = sum(float(e["amount"]) for e in expenses)
+total_trip_expense = sum(int(round(float(e["amount"]))) for e in expenses)
 
 id_to_exp = {e["id"]: e for e in expenses}
 
@@ -419,14 +419,14 @@ with st.container(border=True):
             st.query_params.clear()
             st.rerun()
 
-# 頂部快捷概覽數據卡片
+# 頂部快捷概覽數據卡片（純整數）
 c_metric1, c_metric2, c_metric3 = st.columns(3)
 with c_metric1:
     st.metric("📋 行程邀請碼", trip_code)
 with c_metric2:
     st.metric("👥 成員總數", f"{len(members)} 位")
 with c_metric3:
-    st.metric("💵 全團累積總花費", f"${total_trip_expense:,.0f} 元")
+    st.metric("💵 全團累積總花費", f"${total_trip_expense:,} 元")
 
 st.write("")
 
@@ -544,7 +544,7 @@ with tab1:
                 with col_name:
                     item_name = st.text_input("消費項目", placeholder="例如：第一天晚餐、包車費")
                 with col_price:
-                    amount = st.number_input("金額 (NTD / 結算幣別)", min_value=1.0, step=50.0)
+                    amount = st.number_input("金額 (NTD / 結算幣別)", min_value=1, step=50, format="%d")
 
                 col_payer, col_splitter = st.columns(2)
                 with col_payer:
@@ -562,13 +562,13 @@ with tab1:
                         supabase.table("expenses").insert({
                             "trip_code": trip_code,
                             "item": item_name.strip(),
-                            "amount": amount,
+                            "amount": int(round(amount)),
                             "paid_by": paid_by,
                             "split_members": ",".join(split_with)
                         }).execute()
                         
                         split_str = ", ".join(split_with)
-                        log_detail = f"新增「{item_name.strip()}」金額 ${amount:,.0f} 元（代墊人：{paid_by}，分攤成員：{split_str}）"
+                        log_detail = f"新增「{item_name.strip()}」金額 ${int(round(amount)):,} 元（代墊人：{paid_by}，分攤成員：{split_str}）"
                         log_activity(trip_code, "➕ 新增記帳", log_detail)
                         
                         st.toast(f"💾 記帳成功：{item_name.strip()}！")
@@ -576,7 +576,6 @@ with tab1:
 
     # 明細清單（只篩選顯示團體分攤項目）
     shared_expenses = [e for e in expenses if not is_personal_only(e)]
-    # 【動態連貫序號】：依時間排序，永遠保持 #1, #2, #3... 連貫不欠號
     sorted_shared = sorted(shared_expenses, key=lambda x: x["id"])
     shared_id_to_seq = {e["id"]: idx + 1 for idx, e in enumerate(sorted_shared)}
 
@@ -591,14 +590,13 @@ with tab1:
                     "ID": shared_id_to_seq[e["id"]],
                     "記帳時間": format_time(e.get("created_at")),
                     "消費項目": e["item"],
-                    "總金額": f"${float(e['amount']):,.0f}",
+                    "總金額": f"${int(round(float(e['amount']))):,}",
                     "代墊付款人": e["paid_by"],
                     "分攤成員": e["split_members"]
                 })
             df_exp = pd.DataFrame(exp_data)
             st.dataframe(df_exp, use_container_width=True, hide_index=True)
 
-            # 操作區塊：修改與刪除（完全杜絕幽靈殘像）
             col_edit_card, col_del_card = st.columns(2)
             
             with col_edit_card:
@@ -606,7 +604,7 @@ with tab1:
                     edit_id = st.selectbox(
                         "選擇欲修改的項目：",
                         options=[e["id"] for e in shared_expenses],
-                        format_func=lambda x: f"編號 #{shared_id_to_seq[x]}：{id_to_exp[x]['item']} (${float(id_to_exp[x]['amount']):,.0f})",
+                        format_func=lambda x: f"編號 #{shared_id_to_seq[x]}：{id_to_exp[x]['item']} (${int(round(float(id_to_exp[x]['amount']))):,})",
                         key="select_edit_id"
                     )
                     target_exp = id_to_exp[edit_id]
@@ -614,7 +612,7 @@ with tab1:
                     
                     with st.form("edit_form"):
                         new_item = st.text_input("項目名稱", value=target_exp["item"])
-                        new_amount = st.number_input("金額", min_value=1.0, value=float(target_exp["amount"]), step=50.0)
+                        new_amount = st.number_input("金額", min_value=1, value=int(round(float(target_exp["amount"]))), step=50, format="%d")
                         paid_index = members.index(target_exp["paid_by"]) if target_exp["paid_by"] in members else 0
                         new_paid_by = st.selectbox("代墊人", options=members, index=paid_index)
                         new_split = st.multiselect("分攤名單", options=members, default=current_split)
@@ -628,18 +626,17 @@ with tab1:
                             else:
                                 supabase.table("expenses").update({
                                     "item": new_item.strip(),
-                                    "amount": new_amount,
+                                    "amount": int(round(new_amount)),
                                     "paid_by": new_paid_by,
                                     "split_members": ",".join(new_split)
                                 }).eq("id", edit_id).execute()
                                 
                                 seq_num = shared_id_to_seq[edit_id]
-                                old_info = f"原「{target_exp['item']}」${float(target_exp['amount']):,.0f}(墊:{target_exp['paid_by']})"
-                                new_info = f"改為「{new_item.strip()}」${new_amount:,.0f}(墊:{new_paid_by}，分攤:{', '.join(new_split)})"
+                                old_info = f"原「{target_exp['item']}」${int(round(float(target_exp['amount']))):,}(墊:{target_exp['paid_by']})"
+                                new_info = f"改為「{new_item.strip()}」${int(round(new_amount)):,}(墊:{new_paid_by}，分攤:{', '.join(new_split)})"
                                 log_activity(trip_code, "✏️ 修改記帳", f"修改編號 #{seq_num}：{old_info} ➔ {new_info}")
                                 
                                 st.toast("✏️ 帳目已成功更新！")
-                                # 計數器 +1：自動縮回且 100% 不留殘影
                                 st.session_state["cnt_group_edit"] += 1
                                 st.rerun()
 
@@ -648,16 +645,16 @@ with tab1:
                     del_id = st.selectbox(
                         "選擇欲刪除的項目：",
                         options=[e["id"] for e in shared_expenses],
-                        format_func=lambda x: f"編號 #{shared_id_to_seq[x]}：{id_to_exp[x]['item']} (${float(id_to_exp[x]['amount']):,.0f})",
+                        format_func=lambda x: f"編號 #{shared_id_to_seq[x]}：{id_to_exp[x]['item']} (${int(round(float(id_to_exp[x]['amount']))):,})",
                         key="select_del_id"
                     )
                     if st.button("確認刪除該筆記錄", type="primary", use_container_width=True):
                         seq_num = shared_id_to_seq[del_id]
                         del_item_name = id_to_exp[del_id]['item']
-                        del_amt = float(id_to_exp[del_id]['amount'])
+                        del_amt = int(round(float(id_to_exp[del_id]['amount'])))
                         
                         supabase.table("expenses").delete().eq("id", del_id).execute()
-                        log_activity(trip_code, "🗑️ 刪除記帳", f"刪除編號 #{seq_num}「{del_item_name}」，金額 ${del_amt:,.0f} 元")
+                        log_activity(trip_code, "🗑️ 刪除記帳", f"刪除編號 #{seq_num}「{del_item_name}」，金額 ${del_amt:,} 元")
                         
                         st.toast("🗑️ 該筆帳目已成功刪除！")
                         st.session_state["cnt_group_del"] += 1
@@ -665,7 +662,7 @@ with tab1:
         else:
             st.info("目前尚無團體分攤紀錄。")
 
-# ==================== Tab 2: 個人即時帳務 ====================
+# ==================== Tab 2: 個人即時帳務（全整數化計算） ====================
 with tab2:
     if not members:
         st.info("請先新增成員。")
@@ -675,16 +672,17 @@ with tab2:
             with col_sel:
                 selected_user = st.selectbox("請切換你的名字查看：", options=members)
             
-            total_paid_by_user = 0.0
-            total_consumed_by_user = 0.0
+            total_paid_by_user = 0
+            total_consumed_by_user = 0
             
             group_expenses_list = []
             personal_expenses_list = []
 
             for e in expenses:
-                amt = float(e["amount"])
+                amt = int(round(float(e["amount"])))
                 split_list = [m.strip() for m in e["split_members"].split(",") if m.strip()]
-                share = amt / len(split_list) if split_list else 0
+                # 四捨五入至整數，無小數點
+                share = int(round(amt / len(split_list))) if split_list else 0
 
                 if e["paid_by"] == selected_user:
                     total_paid_by_user += amt
@@ -698,7 +696,7 @@ with tab2:
                             "raw_id": e["id"],
                             "記帳時間": format_time(e.get("created_at")),
                             "項目名稱": e["item"],
-                            "自費金額": f"${amt:,.0f}"
+                            "自費金額": f"${amt:,}"
                         })
                 else:
                     if selected_user in split_list or e["paid_by"] == selected_user:
@@ -707,9 +705,9 @@ with tab2:
                             "ID": seq_display,
                             "記帳時間": format_time(e.get("created_at")),
                             "項目": e["item"],
-                            "整筆金額": f"${amt:,.0f}",
+                            "整筆金額": f"${amt:,}",
                             "分攤人數": f"{len(split_list)} 人",
-                            "我應負擔": f"${share:,.2f}" if selected_user in split_list else "$0.00",
+                            "我應負擔": f"${share:,}" if selected_user in split_list else "$0",
                             "代墊人": e["paid_by"]
                         })
 
@@ -718,27 +716,25 @@ with tab2:
             st.divider()
             c_u1, c_u2, c_u3 = st.columns(3)
             with c_u1:
-                st.metric("💰 我先代墊的全額總支出", f"${total_paid_by_user:,.2f}")
+                st.metric("💰 我先代墊的全額總支出", f"${total_paid_by_user:,}")
             with c_u2:
-                st.metric("🍽️ 我個人的實際總消費", f"${total_consumed_by_user:,.2f}")
+                st.metric("🍽️ 我個人的實際總消費", f"${total_consumed_by_user:,}")
             with c_u3:
                 if net_balance >= 0:
-                    st.metric("🟢 我目前應收回（淨額）", f"+${net_balance:,.2f}")
+                    st.metric("🟢 我目前應收回（淨額）", f"+${net_balance:,}")
                 else:
-                    st.metric("🔴 我目前應補繳（淨額）", f"-${abs(net_balance):,.2f}")
+                    st.metric("🔴 我目前應補繳（淨額）", f"-${abs(net_balance):,}")
 
-        # 個人專屬自費項目（連貫編號）
+        # 個人專屬自費項目
         with st.container(border=True):
             st.markdown(f"#### 🛍️ **{selected_user}** 的個人自費清單（無他人分攤）")
             if personal_expenses_list:
-                # 重新編排個人項目的連貫序號
                 sorted_personal = sorted(personal_expenses_list, key=lambda x: x["raw_id"])
                 p_id_to_seq = {p["raw_id"]: idx + 1 for idx, p in enumerate(sorted_personal)}
                 for p in personal_expenses_list:
                     p["ID"] = p_id_to_seq[p["raw_id"]]
 
                 df_personal = pd.DataFrame(personal_expenses_list)
-                # 欄位順序美化：ID 置於最前
                 cols_order = ["ID", "記帳時間", "項目名稱", "自費金額"]
                 st.dataframe(df_personal[cols_order], use_container_width=True, hide_index=True)
                 
@@ -748,18 +744,18 @@ with tab2:
                         p_edit_id = st.selectbox(
                             "選取要修改的個人項目：",
                             options=[p["raw_id"] for p in personal_expenses_list],
-                            format_func=lambda x: f"編號 #{p_id_to_seq[x]}：{id_to_exp[x]['item']} (${float(id_to_exp[x]['amount']):,.0f})",
+                            format_func=lambda x: f"編號 #{p_id_to_seq[x]}：{id_to_exp[x]['item']} (${int(round(float(id_to_exp[x]['amount']))):,})",
                             key="p_edit_select"
                         )
                         target_p = id_to_exp[p_edit_id]
                         with st.form("personal_edit_form"):
                             p_new_item = st.text_input("修改名稱", value=target_p["item"])
-                            p_new_amt = st.number_input("修改金額", min_value=1.0, value=float(target_p["amount"]), step=50.0)
+                            p_new_amt = st.number_input("修改金額", min_value=1, value=int(round(float(target_p["amount"]))), step=50, format="%d")
                             if st.form_submit_button("💾 儲存修改", type="primary", use_container_width=True):
                                 if p_new_item.strip():
-                                    supabase.table("expenses").update({"item": p_new_item.strip(), "amount": p_new_amt}).eq("id", p_edit_id).execute()
+                                    supabase.table("expenses").update({"item": p_new_item.strip(), "amount": int(round(p_new_amt))}).eq("id", p_edit_id).execute()
                                     seq_num = p_id_to_seq[p_edit_id]
-                                    log_activity(trip_code, "✏️ 修改自費", f"{selected_user} 修改個人自費 #{seq_num} 原「{target_p['item']}」➔「{p_new_item.strip()}」${p_new_amt:,.0f} 元")
+                                    log_activity(trip_code, "✏️ 修改自費", f"{selected_user} 修改個人自費 #{seq_num} 原「{target_p['item']}」➔「{p_new_item.strip()}」${int(round(p_new_amt)):,} 元")
                                     st.toast("✏️ 個人項目已更新！")
                                     st.session_state["cnt_p_edit"] += 1
                                     st.rerun()
@@ -768,7 +764,7 @@ with tab2:
                         p_del_id = st.selectbox(
                             "選取要刪除的個人項目：",
                             options=[p["raw_id"] for p in personal_expenses_list],
-                            format_func=lambda x: f"編號 #{p_id_to_seq[x]}：{id_to_exp[x]['item']} (${float(id_to_exp[x]['amount']):,.0f})",
+                            format_func=lambda x: f"編號 #{p_id_to_seq[x]}：{id_to_exp[x]['item']} (${int(round(float(id_to_exp[x]['amount']))):,})",
                             key="p_del_select"
                         )
                         if st.button("確認刪除此個人項目", type="primary", use_container_width=True):
@@ -790,16 +786,16 @@ with tab2:
             else:
                 st.info("目前沒有與您相關的團體分攤明細。")
 
-# ==================== Tab 3: 最終結算建議 ====================
+# ==================== Tab 3: 最終結算建議（四捨五入平帳） ====================
 with tab3:
     if not expenses or not members:
         st.info("尚無足夠資料進行結算。")
     else:
-        balances = {m: 0.0 for m in members}
+        balances = {m: 0 for m in members}
         for e in expenses:
-            amt = float(e["amount"])
+            amt = int(round(float(e["amount"])))
             split_list = [m.strip() for m in e["split_members"].split(",") if m.strip()]
-            share = amt / len(split_list) if split_list else 0
+            share = int(round(amt / len(split_list))) if split_list else 0
             
             if e["paid_by"] in balances:
                 balances[e["paid_by"]] += amt
@@ -816,19 +812,20 @@ with tab3:
                 for k, v in balances.items():
                     bal_rows.append({
                         "成員": k,
-                        "結算狀態": f"🟢 應收回 +${v:,.2f}" if v >= 0 else f"🔴 應支付 -${abs(v):,.2f}"
+                        "結算狀態": f"🟢 應收回 +${v:,}" if v >= 0 else f"🔴 應支付 -${abs(v):,}"
                     })
                 st.dataframe(pd.DataFrame(bal_rows), use_container_width=True, hide_index=True)
 
         with col_guide:
             with st.container(border=True):
                 st.markdown("#### 💡 最簡還款轉帳指南")
+                # 篩選債務人與債權人（整數金額 >= 1）
                 debtors = []
                 creditors = []
                 for m, b in balances.items():
-                    if round(b, 2) < -0.01:
+                    if b < 0:
                         debtors.append([m, -b])
-                    elif round(b, 2) > 0.01:
+                    elif b > 0:
                         creditors.append([m, b])
 
                 settlements = []
@@ -838,14 +835,15 @@ with tab3:
                     cred_name, cred_amt = creditors[j]
                     trans_amt = min(deb_amt, cred_amt)
                     
-                    settlements.append(f"👉 **{deb_name}** 轉帳給 **{cred_name}**：`{trans_amt:,.2f}` 元")
+                    if trans_amt >= 1:
+                        settlements.append(f"👉 **{deb_name}** 轉帳給 **{cred_name}**：`{trans_amt:,}` 元")
                     
                     debtors[i][1] -= trans_amt
                     creditors[j][1] -= trans_amt
                     
-                    if round(debtors[i][1], 2) <= 0.01:
+                    if debtors[i][1] == 0:
                         i += 1
-                    if round(creditors[j][1], 2) <= 0.01:
+                    if creditors[j][1] == 0:
                         j += 1
 
                 if settlements:
@@ -872,7 +870,7 @@ with tab4:
         col_amt, col_from, col_to = st.columns([2, 2, 2])
         
         with col_amt:
-            input_amount = st.number_input("金額：", min_value=0.0, value=1000.0, step=100.0)
+            input_amount = st.number_input("金額：", min_value=0, value=1000, step=100, format="%d")
         with col_from:
             from_cur = st.selectbox("幣別 (From)：", options=list(currency_labels.keys()), format_func=lambda x: currency_labels[x], index=0)
         with col_to:
@@ -881,7 +879,10 @@ with tab4:
         twd_amount = input_amount * currency_rates_to_twd[from_cur]
         converted_amount = twd_amount / currency_rates_to_twd[to_cur]
 
-        st.success(f"💰 **換算結果：** `{input_amount:,.2f}` {currency_labels[from_cur]} ≈ **`{converted_amount:,.2f}` {currency_labels[to_cur]}**")
+        if to_cur == "TWD":
+            st.success(f"💰 **換算結果：** `{input_amount:,}` {currency_labels[from_cur]} ≈ **`{int(round(converted_amount)):,}` {currency_labels[to_cur]}**")
+        else:
+            st.success(f"💰 **換算結果：** `{input_amount:,}` {currency_labels[from_cur]} ≈ **`{converted_amount:,.2f}` {currency_labels[to_cur]}**")
 
         if from_cur != to_cur:
             unit_rate = currency_rates_to_twd[from_cur] / currency_rates_to_twd[to_cur]
