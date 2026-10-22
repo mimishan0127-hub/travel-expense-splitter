@@ -26,7 +26,7 @@ except Exception as e:
 # 標題
 st.title("✈️ 旅遊分帳與帳務管理系統")
 
-# 1. 行程代碼登入（簡約單列設計，支援網址參數記憶）
+# 1. 行程代碼登入（支援網址參數記憶）
 query_trip = st.query_params.get("trip", "okinawa_trip")
 trip_code_input = st.text_input("🔑 行程代碼（同行好友輸入相同代碼即可同步）", value=query_trip)
 trip_code = trip_code_input.strip()
@@ -125,9 +125,9 @@ expenses = get_expenses(trip_code)
 with st.sidebar:
     st.header("👥 成員管理")
     st.caption(f"目前行程代碼：`{trip_code}`")
-    st.caption("⚡ 系統已啟動每 5 秒自動靜默同步")
+    st.caption("⚡ 系統每 5 秒自動靜默同步")
 
-    # 1. 新增成員（表單包裝，防止定時刷新中斷打字）
+    # 1. 新增成員
     st.subheader("➕ 新增成員")
     with st.form("add_member_form", clear_on_submit=True):
         new_member = st.text_input("成員姓名")
@@ -431,13 +431,6 @@ with tab4:
             "即期賣出價 (刷卡/轉帳)": f"{info['spot_sell']:.4f} TWD"
         })
     st.dataframe(pd.DataFrame(table_rows), use_container_width=True)
-
-    st.markdown("#### ✈️ 出國血拼常見金額快速對照 (折合台幣)")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("🇯🇵 10,000 日圓", f"≈ ${10000 * currency_rates_to_twd['JPY']:,.0f} 台幣")
-    c2.metric("🇺🇸 100 美元", f"≈ ${100 * currency_rates_to_twd['USD']:,.0f} 台幣")
-    c3.metric("🇹🇭 1,000 泰銖", f"≈ ${1000 * currency_rates_to_twd['THB']:,.0f} 台幣")
-    c4.metric("🇰🇷 50,000 韓元", f"≈ ${50000 * currency_rates_to_twd['KRW']:,.0f} 台幣")
 
 # ==================== 自動每 5 秒靜默刷新 ====================
 time.sleep(5)
