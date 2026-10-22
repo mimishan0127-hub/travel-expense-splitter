@@ -1,6 +1,10 @@
 import streamlit as st
 from supabase import create_client, Client
 import pandas as pd
+import urllib.request
+import csv
+import io
+from datetime import datetime
 
 # 頁面標題與佈局
 st.set_page_config(page_title="旅遊即時分帳系統", page_icon="✈️", layout="wide")
@@ -52,10 +56,71 @@ def get_expenses(code):
     res = supabase.table("expenses").select("*").eq("trip_code", code).order("id", desc=True).execute()
     return res.data
 
+# 抓取台灣銀行牌告匯率（快取 30 分鐘，避免頻繁請求被阻擋）
+@st.cache_data(ttl=1800)
+def fetch_bot_rates():
+    url = "https://rate.bot.com.tw/xrt/flcsv/0/day"
+    target_currencies = {
+        "USD": "美金 (USD)",
+        "JPY": "日幣 (JPY)",
+        "THB": "泰銖 (THB)",
+        "KRW": "韓元 (KRW)",
+        "CNY": "人民幣 (CNY)"
+    }
+    
+    # 備用基準匯率（當無法連線台銀時啟用，確保網頁正常運作）
+    rates = {
+        "USD": {"name": "美金 (USD)", "cash_sell": 32.50, "spot_sell": 32.40},
+        "JPY": {"name": "日幣 (JPY)", "cash_sell": 0.2150, "spot_sell": 0.2130},
+        "THB": {"name": "泰銖 (THB)", "cash_sell": 0.9800, "spot_sell": 0.9500},
+        "KRW": {"name": "韓元 (KRW)", "cash_sell": 0.0245, "spot_sell": 0.0240},
+        "CNY": {"name": "人民幣 (CNY)", "cash_sell": 4.5200, "spot_sell": 4.4900}
+    }
+    status = "備用參考匯率（連線離線）"
+
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        )
+        with urllib.request.urlopen(req, timeout=6) as response:
+            content = response.read().decode("utf-8", errors="ignore")
+            reader = csv.reader(io.StringIO(content))
+            for row in reader:
+                if not row or len(row) < 14:
+                    continue
+                code = row[0].strip()
+                if code in target_currencies:
+                    def parse_val(v):
+                        try:
+                            val = float(v.strip())
+                            return val if val > 0 else None
+                        except Exception:
+                            return None
+
+                    cash_sell = parse_val(row[12])  # 現金賣出
+                    spot_sell = parse_val(row[13])  # 即期賣出
+                    
+                    # 補全若某項為空的情況
+                    c_val = cash_sell if cash_sell else spot_sell
+                    s_val = spot_sell if spot_sell else cash_sell
+
+                    if c_val:
+                        rates[code] = {
+                            "name": target_currencies[code],
+                            "cash_sell": c_val,
+                            "spot_sell": s_val if s_val else c_val
+                        }
+            status = f"台灣銀行即時牌告（更新於 {datetime.now().strftime('%H:%M')}）"
+    except Exception:
+        status = "連線逾時，已自動切換為備用基準匯率"
+
+    return rates, status
+
 members = get_members(trip_code)
 expenses = get_expenses(trip_code)
 
-# ==================== 側邊欄：成員管理（新增 & 刪除） ====================
+# ==================== 側邊欄：成員管理 ====================
 with st.sidebar:
     st.header("👥 成員名單管理")
     st.write(f"目前行程代碼：`{trip_code}`")
@@ -87,8 +152,13 @@ with st.sidebar:
     else:
         st.info("尚無成員，請先新增成員才能開始記帳！")
 
-# 分頁籤
-tab1, tab2, tab3 = st.tabs(["📝 記帳管理與明細", "👤 個人即時帳務", "📊 最終結算建議"])
+# ==================== 橫列式功能選單 (Tabs) ====================
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📝 記帳管理與明細",
+    "👤 個人即時帳務",
+    "📊 最終結算建議",
+    "💱 匯率換算 (台灣銀行)"
+])
 
 # ==================== Tab 1: 記帳管理與明細 ====================
 with tab1:
@@ -156,7 +226,6 @@ with tab1:
                     new_item = st.text_input("修改品項名稱", value=target_exp["item"])
                     new_amount = st.number_input("修改金額", min_value=1.0, value=float(target_exp["amount"]), step=10.0)
                     
-                    # 避免付款人已被刪除時拋出錯誤
                     paid_index = members.index(target_exp["paid_by"]) if target_exp["paid_by"] in members else 0
                     new_paid_by = st.selectbox("修改代墊人", options=members, index=paid_index)
                     new_split = st.multiselect("修改分攤對象", options=members, default=current_split)
@@ -201,8 +270,8 @@ with tab2:
     else:
         selected_user = st.selectbox("請選擇你是誰：", options=members)
         
-        total_paid_by_user = 0.0      # 自己墊付總額
-        total_consumed_by_user = 0.0  # 自己應付總額
+        total_paid_by_user = 0.0
+        total_consumed_by_user = 0.0
         user_detailed_expenses = []
 
         for e in expenses:
@@ -210,11 +279,9 @@ with tab2:
             split_list = [m.strip() for m in e["split_members"].split(",") if m.strip()]
             share = amt / len(split_list) if split_list else 0
 
-            # 若為代墊人
             if e["paid_by"] == selected_user:
                 total_paid_by_user += amt
 
-            # 若參與分攤
             if selected_user in split_list:
                 total_consumed_by_user += share
                 user_detailed_expenses.append({
@@ -267,8 +334,8 @@ with tab3:
         st.dataframe(df_bal, use_container_width=True)
 
         st.markdown("#### 💡 最簡轉帳還款方案（誰該給誰多少錢）：")
-        debtors = []   # 應付錢的人
-        creditors = [] # 應收錢的人
+        debtors = []
+        creditors = []
         for m, b in balances.items():
             if round(b, 2) < -0.01:
                 debtors.append([m, -b])
@@ -297,3 +364,81 @@ with tab3:
                 st.markdown(s)
         else:
             st.success("🎉 目前帳目已完全平衡，大家互不相欠！")
+
+# ==================== Tab 4: 匯率換算 (台灣銀行) ====================
+with tab4:
+    st.subheader("💱 台灣銀行即時匯率換算")
+    bot_rates, bot_status = fetch_bot_rates()
+    st.caption(f"📡 資料狀態：{bot_status}（牌告賣出價）")
+
+    # 建立幣別轉換清單 (以台幣 TWD 為 1.0 的基準匯率)
+    # 匯率代表：1 該外幣 = 多少台幣
+    currency_rates_to_twd = {"TWD": 1.0}
+    for code, info in bot_rates.items():
+        currency_rates_to_twd[code] = info["cash_sell"]
+
+    currency_labels = {
+        "TWD": "新台幣 (TWD)",
+        "USD": "美金 (USD)",
+        "JPY": "日幣 (JPY)",
+        "THB": "泰銖 (THB)",
+        "KRW": "韓元 (KRW)",
+        "CNY": "人民幣 (CNY)"
+    }
+
+    # 1. 雙向匯率計算機
+    st.markdown("#### 🔄 雙向即時換算")
+    col_amt, col_from, col_to = st.columns([2, 2, 2])
+    
+    with col_amt:
+        input_amount = st.number_input("輸入欲換算金額：", min_value=0.0, value=1000.0, step=100.0)
+    with col_from:
+        from_cur = st.selectbox(
+            "從幣別 (From)：",
+            options=list(currency_labels.keys()),
+            format_func=lambda x: currency_labels[x],
+            index=0  # 預設為 TWD
+        )
+    with col_to:
+        to_cur = st.selectbox(
+            "換算為 (To)：",
+            options=list(currency_labels.keys()),
+            format_func=lambda x: currency_labels[x],
+            index=2  # 預設為 JPY
+        )
+
+    # 計算換算結果：(金額 * From匯率) / To匯率
+    twd_amount = input_amount * currency_rates_to_twd[from_cur]
+    converted_amount = twd_amount / currency_rates_to_twd[to_cur]
+
+    st.success(
+        f"💰 **換算結果：** `{input_amount:,.2f}` {currency_labels[from_cur]} ≈ "
+        f"**`{converted_amount:,.2f}` {currency_labels[to_cur]}**"
+    )
+
+    if from_cur != to_cur:
+        # 顯示單價參考
+        unit_rate = currency_rates_to_twd[from_cur] / currency_rates_to_twd[to_cur]
+        st.info(f"ℹ️ 換算參考：1 {from_cur} ≈ {unit_rate:.4f} {to_cur}")
+
+    st.divider()
+
+    # 2. 台灣銀行牌告匯率總覽表格
+    st.markdown("#### 📋 台灣銀行最新牌告匯率一覽表")
+    table_rows = []
+    for code, info in bot_rates.items():
+        table_rows.append({
+            "幣別代碼": code,
+            "幣別名稱": info["name"],
+            "現金賣出價 (換現鈔)": f"{info['cash_sell']:.4f} TWD",
+            "即期賣出價 (刷卡/轉帳)": f"{info['spot_sell']:.4f} TWD"
+        })
+    st.dataframe(pd.DataFrame(table_rows), use_container_width=True)
+
+    # 3. 旅遊常見金額速查卡片
+    st.markdown("#### ✈️ 出國血拼常見金額快速對照 (折合台幣)")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("🇯🇵 10,000 日圓", f"≈ ${10000 * currency_rates_to_twd['JPY']:,.0f} 台幣")
+    c2.metric("🇺🇸 100 美元", f"≈ ${100 * currency_rates_to_twd['USD']:,.0f} 台幣")
+    c3.metric("🇹🇭 1,000 泰銖", f"≈ ${1000 * currency_rates_to_twd['THB']:,.0f} 台幣")
+    c4.metric("🇰🇷 50,000 韓元", f"≈ ${50000 * currency_rates_to_twd['KRW']:,.0f} 台幣")
