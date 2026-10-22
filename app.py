@@ -5,6 +5,7 @@ import urllib.request
 import csv
 import io
 import time
+import inspect
 from datetime import datetime
 
 # 頁面標題與佈局
@@ -225,6 +226,16 @@ def fetch_bot_rates():
         status = "連線逾時，已使用備用匯率"
     return rates, status
 
+# ==================== 可程式化自動縮回的 Expander 封裝 ====================
+def collapsible_expander(label, flip_key):
+    # 藉由翻轉前置占位節點，強制觸發組件重新掛載並縮回摺疊
+    if st.session_state.get(flip_key, False):
+        st.empty()
+    params = inspect.signature(st.expander).parameters
+    if "key" in params:
+        return st.expander(label, expanded=False, key=f"{flip_key}_{st.session_state.get(flip_key, False)}")
+    return st.expander(label, expanded=False)
+
 # ==================== 頂部行程導航與狀態概覽 ====================
 query_trip = st.query_params.get("trip", "okinawa_trip")
 
@@ -248,8 +259,7 @@ members = get_members(trip_code)
 expenses = get_expenses(trip_code)
 total_trip_expense = sum(float(e["amount"]) for e in expenses)
 
-# ==================== 【關鍵升級】為每筆帳目編排從 1 開始的序號 ====================
-# 依新增時間先後排序，為當前行程的所有帳目賦予從 1 開始的專屬編號
+# 為每筆帳目編排從 1 開始的序號
 sorted_expenses = sorted(expenses, key=lambda x: x["id"])
 id_to_seq = {e["id"]: idx + 1 for idx, e in enumerate(sorted_expenses)}
 id_to_exp = {e["id"]: e for e in expenses}
@@ -284,7 +294,7 @@ with st.sidebar:
             label_visibility="collapsed"
         )
 
-    # 2. 新增成員卡片（改用懸浮提示，不再反覆重繪卡住）
+    # 2. 新增成員卡片
     with st.container(border=True):
         st.markdown("**➕ 新增成員**")
         with st.form("add_member_form", clear_on_submit=True):
@@ -363,7 +373,7 @@ with tab1:
                         time.sleep(0.3)
                         st.rerun()
 
-    # 區塊 2：明細清單（只顯示團體分攤，ID 從 1 開始）
+    # 區塊 2：明細清單
     shared_expenses = [e for e in expenses if not is_personal_only(e)]
 
     with st.container(border=True):
@@ -374,7 +384,7 @@ with tab1:
             exp_data = []
             for e in shared_expenses:
                 exp_data.append({
-                    "ID": id_to_seq[e["id"]],  # 顯示從 1 開始的序號
+                    "ID": id_to_seq[e["id"]],
                     "記帳時間": format_time(e.get("created_at")),
                     "消費項目": e["item"],
                     "總金額": f"${float(e['amount']):,.0f}",
@@ -384,11 +394,11 @@ with tab1:
             df_exp = pd.DataFrame(exp_data)
             st.dataframe(df_exp, use_container_width=True, hide_index=True)
 
-            # 下方獨立操作區塊：修改與刪除（選單同步顯示從 1 開始的編號）
+            # 下方操作區塊（支援儲存/刪除後自動縮回）
             col_edit_card, col_del_card = st.columns(2)
             
             with col_edit_card:
-                with st.expander("✏️ 修改已記錄的內容"):
+                with collapsible_expander("✏️ 修改已記錄的內容", "flip_group_edit"):
                     edit_id = st.selectbox(
                         "選擇欲修改的項目：",
                         options=[e["id"] for e in shared_expenses],
@@ -419,11 +429,13 @@ with tab1:
                                     "split_members": ",".join(new_split)
                                 }).eq("id", edit_id).execute()
                                 st.toast("✏️ 帳目已成功更新！")
+                                # 翻轉狀態，觸發自動縮回選單
+                                st.session_state["flip_group_edit"] = not st.session_state.get("flip_group_edit", False)
                                 time.sleep(0.3)
                                 st.rerun()
 
             with col_del_card:
-                with st.expander("🗑️ 刪除已記錄的帳目"):
+                with collapsible_expander("🗑️ 刪除已記錄的帳目", "flip_group_del"):
                     del_id = st.selectbox(
                         "選擇欲刪除的項目：",
                         options=[e["id"] for e in shared_expenses],
@@ -433,6 +445,8 @@ with tab1:
                     if st.button("確認刪除該筆記錄", type="primary", use_container_width=True):
                         supabase.table("expenses").delete().eq("id", del_id).execute()
                         st.toast("🗑️ 該筆帳目已成功刪除！")
+                        # 翻轉狀態，觸發自動縮回選單
+                        st.session_state["flip_group_del"] = not st.session_state.get("flip_group_del", False)
                         time.sleep(0.3)
                         st.rerun()
         else:
@@ -503,7 +517,7 @@ with tab2:
                 else:
                     st.metric("🔴 我目前應補繳（淨額）", f"-${abs(net_balance):,.2f}")
 
-        # 區塊 A：個人專屬自費項目（ID 同樣從 1 開始）
+        # 區塊 A：個人專屬自費項目（同樣支援儲存後自動縮回）
         with st.container(border=True):
             st.markdown(f"#### 🛍️ **{selected_user}** 的個人自費清單（無他人分攤）")
             if personal_expenses_list:
@@ -512,7 +526,7 @@ with tab2:
                 
                 col_p_edit, col_p_del = st.columns(2)
                 with col_p_edit:
-                    with st.expander("✏️ 修改個人自費項目"):
+                    with collapsible_expander("✏️ 修改個人自費項目", "flip_p_edit"):
                         p_edit_id = st.selectbox(
                             "選取要修改的個人項目：",
                             options=[p["raw_id"] for p in personal_expenses_list],
@@ -523,14 +537,15 @@ with tab2:
                         with st.form("personal_edit_form"):
                             p_new_item = st.text_input("修改名稱", value=target_p["item"])
                             p_new_amt = st.number_input("修改金額", min_value=1.0, value=float(target_p["amount"]), step=50.0)
-                            if st.form_submit_button("儲存修改", type="primary", use_container_width=True):
+                            if st.form_submit_button("💾 儲存修改", type="primary", use_container_width=True):
                                 if p_new_item.strip():
                                     supabase.table("expenses").update({"item": p_new_item.strip(), "amount": p_new_amt}).eq("id", p_edit_id).execute()
                                     st.toast("✏️ 個人項目已更新！")
+                                    st.session_state["flip_p_edit"] = not st.session_state.get("flip_p_edit", False)
                                     time.sleep(0.3)
                                     st.rerun()
                 with col_p_del:
-                    with st.expander("🗑️ 刪除個人自費項目"):
+                    with collapsible_expander("🗑️ 刪除個人自費項目", "flip_p_del"):
                         p_del_id = st.selectbox(
                             "選取要刪除的個人項目：",
                             options=[p["raw_id"] for p in personal_expenses_list],
@@ -540,6 +555,7 @@ with tab2:
                         if st.button("確認刪除此個人項目", type="primary", use_container_width=True):
                             supabase.table("expenses").delete().eq("id", p_del_id).execute()
                             st.toast("🗑️ 已成功刪除該個人項目！")
+                            st.session_state["flip_p_del"] = not st.session_state.get("flip_p_del", False)
                             time.sleep(0.3)
                             st.rerun()
             else:
