@@ -13,42 +13,42 @@ from datetime import datetime
 # 頁面標題與佈局
 st.set_page_config(page_title="旅遊即時分帳系統", page_icon="✈️", layout="wide", initial_sidebar_state="auto")
 
-# ==================== 5 種極簡莫蘭迪風格配色 ====================
+# ==================== 5 種極簡莫蘭迪風格配色（加強標籤對比度） ====================
 THEMES = {
     "🌿 鼠尾草綠": {
         "primary": "#3d5a4d",
         "hover": "#2f463b",
-        "tag_bg": "#edf4f0",
-        "tag_border": "#cde0d5",
-        "tag_text": "#234033"
+        "tag_bg": "#cfe3d7",
+        "tag_border": "#8ab79e",
+        "tag_text": "#123020"
     },
     "🍂 暖陶土橘": {
         "primary": "#b8563b",
         "hover": "#99432b",
-        "tag_bg": "#faeee9",
-        "tag_border": "#ecc9bc",
-        "tag_text": "#752e1d"
+        "tag_bg": "#f8cfbf",
+        "tag_border": "#df9077",
+        "tag_text": "#5c1b0c"
     },
     "🌊 暮靄靛藍": {
         "primary": "#2a4d6c",
         "hover": "#1d374e",
-        "tag_bg": "#edf3f8",
-        "tag_border": "#c4d8e8",
-        "tag_text": "#15334d"
+        "tag_bg": "#cce0f2",
+        "tag_border": "#84b3dc",
+        "tag_text": "#0a243d"
     },
     "🌸 煙燻胭粉": {
         "primary": "#9c485c",
         "hover": "#7f3546",
-        "tag_bg": "#faecf0",
-        "tag_border": "#ebc5cf",
-        "tag_text": "#691f30"
+        "tag_bg": "#f7cad6",
+        "tag_border": "#d48197",
+        "tag_text": "#4d0d1d"
     },
     "🌑 簡約冷灰": {
         "primary": "#2d3748",
         "hover": "#1a202c",
-        "tag_bg": "#edf2f7",
-        "tag_border": "#cbd5e0",
-        "tag_text": "#1a202c"
+        "tag_bg": "#d3d9e0",
+        "tag_border": "#9aa5b3",
+        "tag_text": "#0f141a"
     }
 }
 
@@ -57,10 +57,10 @@ if "theme_name" not in st.session_state:
 
 current_theme = THEMES[st.session_state["theme_name"]]
 
-# ==================== 極簡無干擾 CSS 樣式系統 ====================
+# ==================== 極簡與高辨識度 CSS 樣式系統 ====================
 st.markdown(f"""
 <style>
-/* 1. 現代字體與背景邊距 */
+/* 1. 全局字體與背景邊距 */
 html, body, [class*="css"] {{
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", sans-serif;
     color: #1e293b;
@@ -73,7 +73,7 @@ html, body, [class*="css"] {{
     max-width: 1050px !important;
 }}
 
-/* 2. 手機端安全間距：保證不被工具列遮擋 */
+/* 2. 手機端安全間距：避開官方工具列 */
 @media (max-width: 768px) {{
     .block-container {{
         padding-top: 4.8rem !important;
@@ -168,23 +168,28 @@ html body button[data-testid="baseButton-secondary"] {{
     min-height: 38px !important;
 }}
 
-/* 7. 人名標籤 */
+/* 7. 【重點改進】人名分攤標籤：加強辨識度、清晰對比輪廓 */
 div[data-testid="stMultiSelect"] {{
     --primary-color: {current_theme['tag_bg']} !important;
 }}
 html body div[data-testid="stMultiSelect"] [data-baseweb="tag"],
 html body div[data-testid="stMultiSelect"] span:has(svg) {{
     background-color: {current_theme['tag_bg']} !important;
-    border: 1px solid {current_theme['tag_border']} !important;
-    border-radius: 6px !important;
-    padding: 2px 7px !important;
+    border: 1.5px solid {current_theme['tag_border']} !important;
+    border-radius: 7px !important;
+    padding: 3px 9px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }}
-html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] span {{
+html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] span,
+html body div[data-testid="stMultiSelect"] span:has(svg) span {{
     color: {current_theme['tag_text']} !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    font-size: 0.92rem !important;
 }}
-html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] svg {{
+html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] svg,
+html body div[data-testid="stMultiSelect"] span:has(svg) svg path {{
     fill: {current_theme['tag_text']} !important;
+    color: {current_theme['tag_text']} !important;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -305,7 +310,7 @@ if "confirm_del_p_id" not in st.session_state:
     st.session_state["confirm_del_p_id"] = None
 
 # ==============================================================================
-# 狀態檢查：判斷是否已登入特定行程
+# 狀態檢查：判斷是否已進入特定行程
 # ==============================================================================
 query_trip = st.query_params.get("trip", "").strip().upper()
 if "current_trip" not in st.session_state:
@@ -314,7 +319,7 @@ if "current_trip" not in st.session_state:
 current_trip = st.session_state["current_trip"]
 
 # ==============================================================================
-# 畫面 A：極簡大廳首頁（雙方塊清晰入口）
+# 畫面 A：極簡大廳首頁
 # ==============================================================================
 if not current_trip:
     st.markdown("<h2 style='text-align: center; margin-bottom: 0.3rem; font-weight: 700;'>✈️ 旅遊分帳系統</h2>", unsafe_allow_html=True)
@@ -337,7 +342,6 @@ if not current_trip:
                 if create_submit:
                     clean_name = new_trip_name.strip()
                     clean_pin = new_admin_pin.strip()
-                    # 漏洞修復：清除姓名中的逗號，防止分隔錯亂
                     clean_creator = re.sub(r'[,，]', '', creator_name.strip())
 
                     if not clean_name:
@@ -401,7 +405,6 @@ if not current_trip:
                     elif not trip_info:
                         st.toast("❌ 邀請碼無效！")
                     else:
-                        # 漏洞修復：清除姓名中的逗號
                         clean_join_name = re.sub(r'[,，]', '', join_member_name.strip())
                         if clean_join_name and clean_join_name not in existing_members:
                             supabase.table("members").insert({
@@ -435,18 +438,25 @@ total_trip_expense = sum(int(round(float(e["amount"]))) for e in expenses)
 
 id_to_exp = {e["id"]: e for e in expenses}
 
-# 頂部行程橫幅
-col_h1, col_h2 = st.columns([4, 1.2])
+# 頂部行程橫幅（新增「🔗 網址分享」按鈕）
+col_h1, col_h2 = st.columns([3.5, 1.8])
 with col_h1:
     st.markdown(f"### {trip_name}")
     st.caption(f"🔑 邀請碼：**`{trip_code}`** ｜ 30 秒自動同步")
 with col_h2:
-    col_btn1, col_btn2 = st.columns(2)
+    col_btn1, col_btn2, col_btn3 = st.columns(3)
     with col_btn1:
         if st.button("🔄", help="手動更新最新資料", use_container_width=True):
             st.toast("🔄 已同步最新資料")
             st.rerun()
     with col_btn2:
+        # 【重點改進 6】離開旁邊新增網址與邀請碼分享彈窗
+        with st.popover("🔗", help="分享行程邀請連結", use_container_width=True):
+            st.markdown(f"**📤 分享【{trip_name}】**")
+            st.caption("同行好友加入行程的專屬邀請碼：")
+            st.code(trip_code, language="text")
+            st.caption("💡 提示：好友直接開啟當前瀏覽器網址，即可直接進入此行程！")
+    with col_btn3:
         if st.button("🚪", help="離開切換行程", use_container_width=True):
             st.session_state["current_trip"] = None
             st.session_state["confirm_del_trip"] = False
@@ -472,7 +482,7 @@ st.write("")
 with st.sidebar:
     st.markdown("### ⚙️ 工具與成員管理")
     
-    # 0. 記憶當前使用者身分（操作更順暢）
+    # 0. 記憶身分
     with st.container(border=True):
         st.markdown("**👤 我的身分**")
         default_user_idx = 0
@@ -483,7 +493,7 @@ with st.sidebar:
             "目前使用此裝置的成員：",
             options=members if members else ["無成員"],
             index=default_user_idx if members else 0,
-            help="記帳時會自動將代墊人預設為您，省去重複選取的麻煩"
+            help="記帳時會自動將代墊人預設為您"
         )
         if members and active_user != st.session_state.get("user_name"):
             st.session_state["user_name"] = active_user
@@ -503,7 +513,7 @@ with st.sidebar:
             label_visibility="collapsed"
         )
 
-    # 2. 成員管理（含防呆關聯檢查）
+    # 2. 成員管理
     with st.container(border=True):
         st.markdown("**👥 行程成員管理**")
         with st.form("add_member_form", clear_on_submit=True):
@@ -527,7 +537,6 @@ with st.sidebar:
                 member_to_delete = st.selectbox("選擇欲刪除成員", options=members)
                 del_pin_input = st.text_input("管理密碼", type="password", key="input_del_pin", placeholder="輸入管理密碼")
                 if st.button("確認刪除", type="secondary", use_container_width=True):
-                    # 漏洞修復 1：安全關聯性檢查
                     is_payer = any(e.get("paid_by") == member_to_delete for e in expenses)
                     is_in_split = any(member_to_delete in [m.strip() for m in e.get("split_members", "").split(",")] for e in expenses)
 
@@ -536,7 +545,7 @@ with st.sidebar:
                     elif not admin_pin or del_pin_input.strip() != admin_pin:
                         st.toast("❌ 密碼錯誤！")
                     elif is_payer or is_in_split:
-                        st.error(f"⚠️ 無法刪除「{member_to_delete}」！\n該成員在行程中已有代墊或分攤紀錄，直接刪除會導致帳務無法結算。請先修改或刪除相關帳目後再嘗試。")
+                        st.error(f"⚠️ 無法刪除「{member_to_delete}」！\n該成員已有代墊或分攤紀錄，直接刪除會導致結算錯誤。請先修改或刪除相關帳目。")
                     else:
                         supabase.table("members").delete().eq("trip_code", trip_code).eq("name", member_to_delete).execute()
                         log_activity(trip_code, "刪除成員", f"管理員刪除成員「{member_to_delete}」")
@@ -612,20 +621,22 @@ with st.sidebar:
 # 橫列主功能選單
 # ==============================================================================
 tab1, tab2, tab3 = st.tabs([
-    "📝 記帳明細",
+    "📝 新增消費",
     "👤 個人帳務",
     "📊 結算還款"
 ])
 
-# ==================== Tab 1: 記帳明細 ====================
+# ==================== Tab 1: 新增消費 ====================
 with tab1:
     with st.container(border=True):
-        st.markdown("##### ➕ 新增一筆消費")
+        # 【重點改進 3】名稱改成「新增消費」
+        st.markdown("##### ➕ 新增消費")
         if len(members) < 1:
             st.warning("請先在左側選單新增成員！")
         else:
             with st.form("add_expense_form", clear_on_submit=True):
-                c_item, c_amt = st.columns([3, 2])
+                # 【重點改進 2】比例改為 1:1，範圍縮小且上下小標題完全對齊
+                c_item, c_amt = st.columns(2)
                 with c_item:
                     item_name = st.text_input("項目名稱", placeholder="例如：晚餐、計程車、門票")
                 with c_amt:
@@ -633,7 +644,6 @@ with tab1:
 
                 c_payer, c_split = st.columns(2)
                 with c_payer:
-                    # 改進 4：自動預設為當前登入者
                     current_idx = members.index(st.session_state.get("user_name")) if st.session_state.get("user_name") in members else 0
                     paid_by = st.selectbox("誰先付錢？", options=members, index=current_idx)
                 with c_split:
@@ -664,7 +674,8 @@ with tab1:
     shared_id_to_seq = {e["id"]: idx + 1 for idx, e in enumerate(sorted_shared)}
 
     with st.container(border=True):
-        st.markdown("##### 📋 團體分攤明細清單")
+        # 【重點改進 4】名稱改成「分攤明細」
+        st.markdown("##### 📋 分攤明細")
         if shared_expenses:
             st.dataframe(pd.DataFrame([{
                 "#": shared_id_to_seq[e["id"]],
@@ -706,7 +717,7 @@ with tab1:
                             st.session_state["cnt_manage_exp"] += 1
                             st.rerun()
 
-                # 改進 2：刪除防呆確認
+                # 刪除防呆
                 if st.session_state["confirm_del_exp_id"] == target_id:
                     st.warning(f"⚠️ 確定要刪除 #{shared_id_to_seq[target_id]}「{curr_exp.get('item')}」嗎？此操作不可復原！")
                     c_dy, c_dn = st.columns(2)
@@ -729,7 +740,7 @@ with tab1:
                         st.session_state["confirm_del_exp_id"] = target_id
                         st.rerun()
         else:
-            st.caption("尚無團體分攤紀錄。")
+            st.caption("尚無分攤明細紀錄。")
 
 # ==================== Tab 2: 個人帳務 ====================
 with tab2:
@@ -787,7 +798,6 @@ with tab2:
             with c_p2:
                 st.metric("我個人的消費", f"${total_consumed_by_user:,}")
             with c_p3:
-                # 改進 5：淨額為 0 時的自然語意
                 if net_balance > 0:
                     st.metric("🟢 目前應收回", f"+${net_balance:,}")
                 elif net_balance < 0:
@@ -795,9 +805,9 @@ with tab2:
                 else:
                     st.metric("⚖️ 帳目平衡", "$0")
 
-        # 個人純自費清單
+        # 【重點改進 5】名稱改成「自費清單」
         with st.container(border=True):
-            st.markdown(f"##### 🛍️ **{selected_user}** 的個人自費清單")
+            st.markdown(f"##### 🛍️ 自費清單 ({selected_user})")
             if personal_list:
                 sorted_p = sorted(personal_list, key=lambda x: x["raw_id"])
                 p_id_seq = {p["raw_id"]: idx + 1 for idx, p in enumerate(sorted_p)}
@@ -806,7 +816,7 @@ with tab2:
 
                 st.dataframe(pd.DataFrame(personal_list)[["#", "時間", "項目", "自費金額"]], use_container_width=True, hide_index=True)
 
-                with st.expander("🛠️ 管理個人自費項目", expanded=False, key=f"exp_p_mng_{st.session_state['cnt_manage_p']}"):
+                with st.expander("🛠️ 管理自費項目", expanded=False, key=f"exp_p_mng_{st.session_state['cnt_manage_p']}"):
                     p_sel_id = st.selectbox(
                         "選擇自費項目：",
                         options=[p["raw_id"] for p in personal_list],
@@ -825,7 +835,6 @@ with tab2:
                                 st.session_state["cnt_manage_p"] += 1
                                 st.rerun()
 
-                    # 自費刪除防呆
                     if st.session_state["confirm_del_p_id"] == p_sel_id:
                         st.warning(f"⚠️ 確定刪除此自費項目？")
                         c_py, c_pn = st.columns(2)
@@ -846,11 +855,11 @@ with tab2:
                             st.session_state["confirm_del_p_id"] = p_sel_id
                             st.rerun()
             else:
-                st.caption(f"目前尚無 {selected_user} 的個人純自費項目。")
+                st.caption(f"目前尚無 {selected_user} 的個人自費項目。")
 
-        # 參與的團體分攤明細
+        # 【重點改進 5】名稱改成「分攤清單」
         with st.container(border=True):
-            st.markdown(f"##### 👥 與 **{selected_user}** 相關的分攤明細")
+            st.markdown(f"##### 👥 分攤清單 ({selected_user})")
             if group_list:
                 st.dataframe(pd.DataFrame(group_list), use_container_width=True, hide_index=True)
             else:
@@ -918,7 +927,6 @@ with tab3:
                     for s in settlements:
                         st.info(s)
                     
-                    # 改進 6：一鍵複製到 LINE 的文字懶人包
                     st.divider()
                     st.markdown("**📋 LINE 群組催款懶人包** (點擊右上角直接複製)")
                     share_text = f"✈️【{trip_name}】費用結算清單\n全團總累積花費：${total_trip_expense:,} 元\n" + "-"*20 + "\n"
