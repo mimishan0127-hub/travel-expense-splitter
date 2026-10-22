@@ -10,6 +10,18 @@ from datetime import datetime
 # 頁面標題與佈局
 st.set_page_config(page_title="旅遊即時分帳系統", page_icon="✈️", layout="wide")
 
+# 加入滑鼠懸停 (Hover) 高亮卡片的自訂樣式
+st.markdown("""
+<style>
+/* 電腦端滑鼠滑過卡片時產生高亮邊框與陰影，提升視覺對焦 */
+div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    border-color: #ff4b4b !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+    transition: all 0.2s ease-in-out;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # 初始化 Supabase 連線
 @st.cache_resource
 def init_supabase() -> Client:
@@ -102,6 +114,12 @@ def fetch_bot_rates():
         status = "連線逾時，已使用備用匯率"
 
     return rates, status
+
+# 初始化當前操作狀態
+if "edit_id" not in st.session_state:
+    st.session_state["edit_id"] = None
+if "delete_id" not in st.session_state:
+    st.session_state["delete_id"] = None
 
 # ==================== 頂部行程導航與狀態儀表板 ====================
 query_trip = st.query_params.get("trip", "okinawa_trip")
@@ -217,71 +235,81 @@ with tab1:
                         st.success("記帳成功！")
                         st.rerun()
 
-    # 區塊 2：明細清單卡片
+    # 區塊 2：動態互動清單（取代原本呆板的靜態表格與下拉選單）
     with st.container(border=True):
-        st.markdown("#### 📋 帳目記錄清單")
+        st.markdown("#### 📋 帳目記錄清單（點擊右側按鈕可直接修改或刪除）")
         if expenses:
-            exp_data = []
             for e in expenses:
-                exp_data.append({
-                    "ID": e["id"],
-                    "記帳時間": format_time(e.get("created_at")),
-                    "消費項目": e["item"],
-                    "總金額": f"${float(e['amount']):,.0f}",
-                    "代墊付款人": e["paid_by"],
-                    "分攤成員": e["split_members"]
-                })
-            df_exp = pd.DataFrame(exp_data)
-            st.dataframe(df_exp, use_container_width=True, hide_index=True)
-
-            # 操作卡片：修改與刪除
-            col_edit_card, col_del_card = st.columns(2)
-            with col_edit_card:
-                with st.expander("✏️ 修改已記錄的內容"):
-                    edit_id = st.selectbox(
-                        "選擇欲修改的項目：",
-                        options=[e["id"] for e in expenses],
-                        format_func=lambda x: f"ID {x}: {[e['item'] for e in expenses if e['id']==x][0]} (${float([e['amount'] for e in expenses if e['id']==x][0]):,.0f})",
-                        key="select_edit_id"
-                    )
-                    target_exp = [e for e in expenses if e["id"] == edit_id][0]
-                    current_split = [m.strip() for m in target_exp["split_members"].split(",") if m.strip() in members]
-                    
-                    with st.form("edit_form"):
-                        new_item = st.text_input("項目名稱", value=target_exp["item"])
-                        new_amount = st.number_input("金額", min_value=1.0, value=float(target_exp["amount"]), step=50.0)
-                        paid_index = members.index(target_exp["paid_by"]) if target_exp["paid_by"] in members else 0
-                        new_paid_by = st.selectbox("代墊人", options=members, index=paid_index)
-                        new_split = st.multiselect("分攤名單", options=members, default=current_split)
+                # 判斷是否為正在編輯的項目
+                if st.session_state["edit_id"] == e["id"]:
+                    with st.container(border=True):
+                        st.markdown(f"✏️ **正在修改項目：{e['item']}**")
+                        current_split = [m.strip() for m in e["split_members"].split(",") if m.strip() in members]
+                        paid_idx = members.index(e["paid_by"]) if e["paid_by"] in members else 0
                         
-                        save_edit = st.form_submit_button("儲存修改", use_container_width=True)
-                        if save_edit:
-                            if not new_item.strip():
-                                st.error("項目名稱不可為空！")
-                            elif not new_split:
-                                st.error("分攤名單不可為空！")
-                            else:
-                                supabase.table("expenses").update({
-                                    "item": new_item.strip(),
-                                    "amount": new_amount,
-                                    "paid_by": new_paid_by,
-                                    "split_members": ",".join(new_split)
-                                }).eq("id", edit_id).execute()
-                                st.success("帳目已更新！")
+                        with st.form(f"inline_edit_{e['id']}"):
+                            n_item = st.text_input("項目名稱", value=e["item"])
+                            n_amount = st.number_input("金額", min_value=1.0, value=float(e["amount"]), step=50.0)
+                            n_paid = st.selectbox("代墊人", options=members, index=paid_idx)
+                            n_split = st.multiselect("分攤名單", options=members, default=current_split)
+                            
+                            c_sv, c_cl = st.columns(2)
+                            with c_sv:
+                                if st.form_submit_button("💾 儲存更新", type="primary", use_container_width=True):
+                                    if n_item.strip() and n_split:
+                                        supabase.table("expenses").update({
+                                            "item": n_item.strip(),
+                                            "amount": n_amount,
+                                            "paid_by": n_paid,
+                                            "split_members": ",".join(n_split)
+                                        }).eq("id", e["id"]).execute()
+                                        st.session_state["edit_id"] = None
+                                        st.success("更新成功！")
+                                        st.rerun()
+                                    else:
+                                        st.error("項目與分攤名單不能為空！")
+                            with c_cl:
+                                if st.form_submit_button("❌ 取消", use_container_width=True):
+                                    st.session_state["edit_id"] = None
+                                    st.rerun()
+
+                # 判斷是否為正在確認刪除的項目
+                elif st.session_state["delete_id"] == e["id"]:
+                    with st.container(border=True):
+                        st.warning(f"⚠️ 確定要刪除 **{e['item']}**（金額：${float(e['amount']):,.0f} 元）嗎？此動作無法復原！")
+                        c_yes, c_no = st.columns(2)
+                        with c_yes:
+                            if st.button("🗑️ 確認永久刪除", key=f"conf_del_{e['id']}", type="primary", use_container_width=True):
+                                supabase.table("expenses").delete().eq("id", e["id"]).execute()
+                                st.session_state["delete_id"] = None
+                                st.success("已成功刪除！")
+                                st.rerun()
+                        with c_no:
+                            if st.button("取消", key=f"cancel_del_{e['id']}", use_container_width=True):
+                                st.session_state["delete_id"] = None
                                 st.rerun()
 
-            with col_del_card:
-                with st.expander("🗑️ 刪除帳目"):
-                    del_id = st.selectbox(
-                        "選擇欲刪除的項目：",
-                        options=[e["id"] for e in expenses],
-                        format_func=lambda x: f"ID {x}: {[e['item'] for e in expenses if e['id']==x][0]} (${float([e['amount'] for e in expenses if e['id']==x][0]):,.0f})",
-                        key="select_del_id"
-                    )
-                    if st.button("確認刪除該筆記錄", type="primary", use_container_width=True):
-                        supabase.table("expenses").delete().eq("id", del_id).execute()
-                        st.success("已成功刪除！")
-                        st.rerun()
+                # 平常顯示的交易記錄卡片（滑鼠滑過會自動高亮）
+                else:
+                    with st.container(border=True):
+                        col_info, col_price, col_actions = st.columns([4, 1.5, 1.2])
+                        with col_info:
+                            st.markdown(f"**{e['item']}**")
+                            st.caption(f"🕒 {format_time(e.get('created_at'))} ｜ 墊付：**{e['paid_by']}** ｜ 分攤：{e['split_members']}")
+                        with col_price:
+                            st.markdown(f"### ${float(e['amount']):,.0f}")
+                        with col_actions:
+                            b1, b2 = st.columns(2)
+                            with b1:
+                                if st.button("✏️", key=f"btn_edit_{e['id']}", help="修改此筆資料", use_container_width=True):
+                                    st.session_state["edit_id"] = e["id"]
+                                    st.session_state["delete_id"] = None
+                                    st.rerun()
+                            with b2:
+                                if st.button("🗑️", key=f"btn_del_{e['id']}", help="刪除此筆資料", use_container_width=True):
+                                    st.session_state["delete_id"] = e["id"]
+                                    st.session_state["edit_id"] = None
+                                    st.rerun()
         else:
             st.info("目前尚無消費紀錄。")
 
@@ -468,6 +496,9 @@ with tab4:
             })
         st.dataframe(pd.DataFrame(table_rows), use_container_width=True, hide_index=True)
 
-# ==================== 每 5 秒自動靜默刷新 ====================
-time.sleep(5)
-st.rerun()
+# ==================== 自動定時靜默同步 ====================
+# 當使用者正在進行行內編輯或確認刪除時，自動暫停定時重整，避免打字被中斷
+is_user_busy = (st.session_state["edit_id"] is not None) or (st.session_state["delete_id"] is not None)
+if not is_user_busy:
+    time.sleep(5)
+    st.rerun()
