@@ -19,62 +19,62 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ==================== 5 種現代高奢配色主題 ====================
+# ==================== 5 種活潑高彩感多巴胺主題 ====================
 THEMES = {
-    "🌿 活潑青蘋鼠尾草": {
-        "primary": "#2D6A4F",
-        "primary_dark": "#1B4332",
-        "gradient": "linear-gradient(135deg, #2D6A4F 0%, #40916C 100%)",
-        "hero_bg": "linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%)",
-        "tag_bg": "#E8F5E9",
-        "tag_border": "#A3D9A5",
-        "tag_text": "#1B4332",
-        "glow": "rgba(45, 106, 79, 0.22)",
-        "badge": "#D8F3DC"
+    "🌿 奇異果薄荷綠": {
+        "primary": "#10B981",
+        "primary_dark": "#047857",
+        "gradient": "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+        "hero_bg": "linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%)",
+        "tag_bg": "#ECFDF5",
+        "tag_border": "#A7F3D0",
+        "tag_text": "#065F46",
+        "glow": "rgba(16, 185, 129, 0.25)",
+        "card_accent": "#F0FDF4"
     },
-    "🍂 暖陽落日焦糖": {
-        "primary": "#C84B31",
-        "primary_dark": "#8F2D18",
-        "gradient": "linear-gradient(135deg, #C84B31 0%, #E26D5C 100%)",
-        "hero_bg": "linear-gradient(135deg, #7A2412 0%, #C84B31 100%)",
-        "tag_bg": "#FBEAE7",
-        "tag_border": "#F2A699",
-        "tag_text": "#671A0B",
-        "glow": "rgba(200, 75, 49, 0.22)",
-        "badge": "#FCD5CE"
+    "🍊 熱情香橙珊瑚": {
+        "primary": "#F97316",
+        "primary_dark": "#C2410C",
+        "gradient": "linear-gradient(135deg, #F97316 0%, #EA580C 100%)",
+        "hero_bg": "linear-gradient(135deg, #C2410C 0%, #F97316 50%, #FB923C 100%)",
+        "tag_bg": "#FFF7ED",
+        "tag_border": "#FED7AA",
+        "tag_text": "#9A3412",
+        "glow": "rgba(249, 115, 22, 0.25)",
+        "card_accent": "#FFFBEB"
     },
-    "🌊 晴空湛藍暮靄": {
-        "primary": "#1E5F74",
-        "primary_dark": "#133B49",
-        "gradient": "linear-gradient(135deg, #1E5F74 0%, #2D82B7 100%)",
-        "hero_bg": "linear-gradient(135deg, #0E2933 0%, #1E5F74 100%)",
-        "tag_bg": "#E5F4F8",
-        "tag_border": "#9FD1E1",
-        "tag_text": "#0C2E38",
-        "glow": "rgba(30, 95, 116, 0.22)",
-        "badge": "#CCE8F0"
+    "🌊 霓光蔚藍海洋": {
+        "primary": "#0EA5E9",
+        "primary_dark": "#0369A1",
+        "gradient": "linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)",
+        "hero_bg": "linear-gradient(135deg, #0369A1 0%, #0EA5E9 50%, #38BDF8 100%)",
+        "tag_bg": "#F0F9FF",
+        "tag_border": "#BAE6FD",
+        "tag_text": "#075985",
+        "glow": "rgba(14, 165, 233, 0.25)",
+        "card_accent": "#F8FAFC"
     },
-    "🌸 甜美蜜桃煙粉": {
-        "primary": "#A24857",
-        "primary_dark": "#6D2935",
-        "gradient": "linear-gradient(135deg, #A24857 0%, #C76B7C 100%)",
-        "hero_bg": "linear-gradient(135deg, #581C26 0%, #A24857 100%)",
-        "tag_bg": "#FCECEF",
-        "tag_border": "#EAA4B1",
-        "tag_text": "#4F1620",
-        "glow": "rgba(162, 72, 87, 0.22)",
-        "badge": "#F8D4DC"
+    "🍇 幻紫葡萄野莓": {
+        "primary": "#8B5CF6",
+        "primary_dark": "#6D28D9",
+        "gradient": "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)",
+        "hero_bg": "linear-gradient(135deg, #5B21B6 0%, #8B5CF6 50%, #A78BFA 100%)",
+        "tag_bg": "#F5F3FF",
+        "tag_border": "#DDD6FE",
+        "tag_text": "#5B21B6",
+        "glow": "rgba(139, 92, 246, 0.25)",
+        "card_accent": "#FAF5FF"
     },
-    "🌑 俐落玄武晶石": {
-        "primary": "#2B2D42",
-        "primary_dark": "#181926",
-        "gradient": "linear-gradient(135deg, #2B2D42 0%, #474A6B 100%)",
-        "hero_bg": "linear-gradient(135deg, #141520 0%, #2B2D42 100%)",
-        "tag_bg": "#EDEEF2",
-        "tag_border": "#B5B8C7",
-        "tag_text": "#161722",
-        "glow": "rgba(43, 45, 66, 0.22)",
-        "badge": "#DFE0E8"
+    "🍓 蜜桃草莓晶球": {
+        "primary": "#F43F5E",
+        "primary_dark": "#BE123C",
+        "gradient": "linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)",
+        "hero_bg": "linear-gradient(135deg, #9F1239 0%, #F43F5E 50%, #FB7185 100%)",
+        "tag_bg": "#FFF1F2",
+        "tag_border": "#FECDD3",
+        "tag_text": "#9F1239",
+        "glow": "rgba(244, 63, 94, 0.25)",
+        "card_accent": "#FFF5F5"
     }
 }
 
@@ -84,225 +84,202 @@ if "theme_name" not in st.session_state or st.session_state["theme_name"] not in
 
 current_theme = THEMES[st.session_state["theme_name"]]
 
-# ==================== 徹底解決手機排版破版之 CSS ====================
+# ==================== 徹底隱藏 Share 及頂部工具列之 CSS ====================
 st.markdown(f"""
 <style>
+/* 1. 隱藏 Streamlit 官方頂部工具列 (含 Share / Fork / GitHub) */
+header[data-testid="stHeader"],
+div[data-testid="stToolbar"],
+button[title="Share"],
+div:has(> button[title="Share"]),
+footer {{
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}}
+
+/* 2. 字體與手機端友善畫布 */
 html, body, [class*="css"] {{
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang TC", "Noto Sans TC", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "PingFang TC", "Noto Sans TC", sans-serif;
     color: #0F172A;
     background-color: #F8FAFC !important;
     -webkit-font-smoothing: antialiased;
 }}
 
 .block-container {{
-    padding-top: 3.2rem !important;
+    padding-top: 1.2rem !important;
     padding-bottom: 3.5rem !important;
-    max-width: 680px !important;
+    max-width: 650px !important;
     margin: 0 auto;
 }}
 
 @media (max-width: 768px) {{
     .block-container {{
-        padding-top: 4.4rem !important;
-        padding-left: 0.85rem !important;
-        padding-right: 0.85rem !important;
+        padding-top: 1.5rem !important;
+        padding-left: 0.95rem !important;
+        padding-right: 0.95rem !important;
         padding-bottom: 3.5rem !important;
     }}
 }}
 
-/* 【核心修復 1】強制頂部按鈕列在手機端保持單行橫向並排，嚴禁向下折行變成巨大長條 */
-.mobile-top-bar [data-testid="stHorizontalBlock"] {{
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    gap: 8px !important;
-    margin-bottom: 10px !important;
+/* 3. 活潑漸層 Hero 頂部資訊看板 */
+.vibrant-hero {{
+    background: {current_theme['hero_bg']};
+    color: #FFFFFF;
+    border-radius: 24px;
+    padding: 1.35rem 1.3rem;
+    box-shadow: 0 12px 28px -4px {current_theme['glow']};
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
 }}
-.mobile-top-bar [data-testid="column"] {{
-    min-width: 0 !important;
-    flex: 1 1 0px !important;
+.vibrant-hero::after {{
+    content: "✈️";
+    position: absolute;
+    bottom: -15px;
+    right: -10px;
+    font-size: 85px;
+    opacity: 0.18;
+    pointer-events: none;
 }}
-
-/* 頂部按鈕高度適中、俐落美觀 */
-.mobile-top-bar button, .mobile-top-bar div[data-testid="stPopover"] > button {{
-    min-height: 38px !important;
-    height: 38px !important;
-    border-radius: 11px !important;
-    font-size: 0.88rem !important;
-    padding: 0 6px !important;
-    font-weight: 600 !important;
-    border: 1px solid #E2E8F0 !important;
-    background: #FFFFFF !important;
-    color: #334155 !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+.hero-title-badge {{
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
 }}
-
-/* 旅程頂部標題卡片 */
-.trip-banner {{
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 18px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-}}
-.trip-title-text {{
-    font-size: 1.35rem;
+.hero-main-title {{
+    font-size: 1.45rem;
     font-weight: 800;
-    color: #0F172A;
-    margin-bottom: 6px;
     letter-spacing: -0.02em;
+    margin-bottom: 10px;
 }}
-.trip-badges {{
+.hero-amount {{
+    font-size: 2.2rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+}}
+.hero-chips {{
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
 }}
-.trip-badge {{
-    background: {current_theme['tag_bg']};
-    color: {current_theme['tag_text']};
-    border: 1px solid {current_theme['tag_border']};
-    border-radius: 8px;
-    padding: 3px 8px;
-    font-size: 0.78rem;
+.hero-chip {{
+    background: rgba(255, 255, 255, 0.24);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
     font-weight: 700;
 }}
 
-/* 現代 Hero 看板（緊湊版，不佔用垂直空間） */
-.hero-card {{
-    background: {current_theme['hero_bg']};
-    color: #FFFFFF;
-    border-radius: 18px;
-    padding: 1.1rem 1.2rem;
-    box-shadow: 0 8px 24px -3px {current_theme['glow']};
-    margin-bottom: 14px;
-}}
-.hero-card .label {{
-    font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.82);
-    font-weight: 600;
-    margin-bottom: 2px;
-}}
-.hero-card .amount {{
-    font-size: 2.1rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1.15;
-    margin-bottom: 10px;
-}}
-.hero-card .pill-group {{
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}}
-.hero-card .pill {{
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(8px);
-    border-radius: 10px;
-    padding: 5px 11px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}}
-
-/* 膠囊分頁導航 */
+/* 4. 圓角膠囊分頁導航 (Pill Tabs) */
 div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
     background: #E2E8F0 !important;
-    padding: 4px !important;
-    border-radius: 14px !important;
-    gap: 4px !important;
+    padding: 5px !important;
+    border-radius: 16px !important;
+    gap: 5px !important;
     border: none !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 14px !important;
 }}
 div[data-testid="stTabs"] button[data-testid="stTab"] {{
-    border-radius: 11px !important;
+    border-radius: 12px !important;
     border: none !important;
-    padding: 8px 12px !important;
-    font-size: 0.92rem !important;
-    font-weight: 700 !important;
+    padding: 9px 12px !important;
+    font-size: 0.94rem !important;
+    font-weight: 800 !important;
     color: #64748B !important;
     background: transparent !important;
     flex: 1 1 0px !important;
     text-align: center !important;
+    transition: all 0.2s ease !important;
 }}
 div[data-testid="stTabs"] button[data-testid="stTab"][aria-selected="true"] {{
     background-color: #FFFFFF !important;
     color: {current_theme['primary']} !important;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08) !important;
 }}
 div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
     display: none !important;
 }}
 
-/* 懸浮白底卡片 */
+/* 5. 現代立體白底卡片 */
 div[data-testid="stVerticalBlockBorderWrapper"] {{
-    border-radius: 18px !important;
-    border: 1px solid #E2E8F0 !important;
+    border-radius: 20px !important;
+    border: 1.5px solid #F1F5F9 !important;
     background-color: #FFFFFF !important;
-    padding: 1.1rem 1rem !important;
-    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
-    margin-bottom: 10px !important;
+    padding: 1.2rem 1.1rem !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03) !important;
+    margin-bottom: 12px !important;
 }}
 
-/* 交易項目流水卡片 (Transaction Item) */
-.tx-item {{
+/* 6. 多巴胺交易卡片 (Vibrant Transaction Item) */
+.tx-card {{
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: 11px 13px;
     background: #FFFFFF;
-    border-radius: 14px;
-    border: 1px solid #F1F5F9;
+    border-radius: 16px;
+    border: 1.5px solid #F1F5F9;
     margin-bottom: 8px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
 }}
-.tx-left {{
+.tx-card-left {{
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     flex: 1;
     min-width: 0;
 }}
-.tx-avatar {{
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
+.tx-avatar-box {{
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.15rem;
-    background-color: {current_theme['badge']};
+    font-size: 1.3rem;
     flex-shrink: 0;
 }}
-.tx-info {{
+.tx-info-box {{
     min-width: 0;
     flex: 1;
 }}
-.tx-title {{
-    font-weight: 700;
-    font-size: 0.94rem;
+.tx-title-text {{
+    font-weight: 800;
+    font-size: 0.98rem;
     color: #1E293B;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }}
-.tx-subtitle {{
-    font-size: 0.76rem;
+.tx-sub-text {{
+    font-size: 0.78rem;
     color: #64748B;
-    margin-top: 1px;
+    margin-top: 2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }}
-.tx-amount {{
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
+.tx-price-text {{
+    font-size: 1.15rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
     text-align: right;
     margin-left: 10px;
     flex-shrink: 0;
 }}
 
-/* 表單與主按鈕 */
+/* 7. 主按鈕大尺寸多巴胺風格 */
 html body button[data-testid*="primary"],
 html body button[data-testid="baseButton-primary"],
 html body button[kind="primary"],
@@ -311,27 +288,36 @@ html body div[data-testid="stFormSubmitButton"] > button {{
     background: {current_theme['gradient']} !important;
     border: none !important;
     color: #FFFFFF !important;
-    border-radius: 13px !important;
-    font-weight: 700 !important;
-    font-size: 0.98rem !important;
-    min-height: 44px !important;
-    box-shadow: 0 3px 10px {current_theme['glow']} !important;
+    border-radius: 15px !important;
+    font-weight: 800 !important;
+    font-size: 1.02rem !important;
+    min-height: 48px !important;
+    box-shadow: 0 4px 14px {current_theme['glow']} !important;
 }}
 html body button[data-testid*="primary"]:active,
 html body div[data-testid="stFormSubmitButton"] > button:active {{
     transform: scale(0.98) !important;
 }}
 
-input[type="text"], input[type="password"], input[type="number"] {{
-    border-radius: 12px !important;
+html body button[data-testid*="secondary"],
+html body button[data-testid="baseButton-secondary"] {{
+    border-radius: 13px !important;
     border: 1.5px solid #E2E8F0 !important;
+    background: #FFFFFF !important;
+    color: #334155 !important;
+    font-size: 0.94rem !important;
+    font-weight: 700 !important;
     min-height: 42px !important;
-    font-size: 0.96rem !important;
+}}
+
+input[type="text"], input[type="password"], input[type="number"] {{
+    border-radius: 13px !important;
+    border: 1.5px solid #E2E8F0 !important;
+    min-height: 44px !important;
+    font-size: 1rem !important;
     padding: 8px 12px !important;
-    background-color: #FAFAFA !important;
 }}
 input:focus {{
-    background-color: #FFFFFF !important;
     border-color: {current_theme['primary']} !important;
     box-shadow: 0 0 0 3px {current_theme['glow']} !important;
 }}
@@ -343,8 +329,8 @@ html body div[data-testid="stMultiSelect"] [data-baseweb="tag"],
 html body div[data-testid="stMultiSelect"] span:has(svg) {{
     background-color: {current_theme['tag_bg']} !important;
     border: 1.5px solid {current_theme['tag_border']} !important;
-    border-radius: 9px !important;
-    padding: 3px 8px !important;
+    border-radius: 10px !important;
+    padding: 4px 10px !important;
 }}
 html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] span {{
     color: {current_theme['tag_text']} !important;
@@ -491,14 +477,25 @@ def get_personal_categories(book_code, r_type):
     except Exception:
         return []
 
-CATEGORY_ICONS = {
-    "食物": "🍔", "購物": "🛍️", "家用": "🏠", "交通": "🚗",
-    "醫療": "💊", "娛樂": "🎮", "儲蓄": "💰", "保險": "🛡️",
-    "其他": "📦", "薪水": "💼", "獎金": "🎁", "回饋": "💳", "股息": "📈"
+# 活潑多巴胺圖示與背景色
+CATEGORY_STYLES = {
+    "食物": {"icon": "🍔", "bg": "#FFEDD5", "color": "#C2410C"},
+    "購物": {"icon": "🛍️", "bg": "#FCE7F3", "color": "#BE185D"},
+    "家用": {"icon": "🏠", "bg": "#E0E7FF", "color": "#4338CA"},
+    "交通": {"icon": "🚗", "bg": "#E0F2FE", "color": "#0369A1"},
+    "醫療": {"icon": "💊", "bg": "#FEE2E2", "color": "#B91C1C"},
+    "娛樂": {"icon": "🎮", "bg": "#DCFCE7", "color": "#15803D"},
+    "儲蓄": {"icon": "💰", "bg": "#FEF3C7", "color": "#B45309"},
+    "保險": {"icon": "🛡️", "bg": "#F3E8FF", "color": "#7E22CE"},
+    "其他": {"icon": "📦", "bg": "#F1F5F9", "color": "#475569"},
+    "薪水": {"icon": "💼", "bg": "#D1FAE5", "color": "#047857"},
+    "獎金": {"icon": "🎁", "bg": "#FFE4E6", "color": "#BE123C"},
+    "回饋": {"icon": "💳", "bg": "#CFFAFE", "color": "#0E7490"},
+    "股息": {"icon": "📈", "bg": "#EDE9FE", "color": "#6D28D9"}
 }
 
-def get_cat_icon(cat):
-    return CATEGORY_ICONS.get(cat, "🔖")
+def get_cat_style(cat):
+    return CATEGORY_STYLES.get(cat, {"icon": "🔖", "bg": "#F1F5F9", "color": "#475569"})
 
 DEFAULT_RATES = {
     "USD": {"name": "美金", "cash_sell": 32.50},
@@ -566,14 +563,14 @@ elif url_book and st.session_state["current_code"] != url_book and st.session_st
 
 
 # ==============================================================================
-# 第一層：身分認證
+# 第一層：身分認證（未登入）
 # ==============================================================================
 if st.session_state["current_code"] is None and st.session_state["auth_user"] is None:
     st.markdown("""
-    <div style='text-align: center; margin-top: 6px; margin-bottom: 20px;'>
-        <div style='font-size: 38px; margin-bottom: 4px;'>📒</div>
-        <h2 style='margin:0; font-weight:800; font-size:1.6rem; color:#0F172A;'>個人 / 共同分帳記事簿</h2>
-        <p style='color:#64748B; font-size:0.9rem; margin-top:4px;'>點擊好友連結免登入直達；管理私帳請由此登入</p>
+    <div style='text-align: center; margin-top: 8px; margin-bottom: 20px;'>
+        <div style='font-size: 42px; margin-bottom: 4px;'>📒</div>
+        <h2 style='margin:0; font-weight:900; font-size:1.65rem; color:#0F172A;'>個人 / 共同分帳記事簿</h2>
+        <p style='color:#64748B; font-size:0.92rem; margin-top:5px;'>點擊好友專屬連結免登入直達；管理帳本請由此登入</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -583,7 +580,7 @@ if st.session_state["current_code"] is None and st.session_state["auth_user"] is
         with tab_login:
             with st.form("login_form"):
                 l_email = st.text_input("電子信箱", placeholder="name@example.com").strip().lower()
-                l_pwd = st.text_input("登入密碼", type="password", placeholder="請輸入密碼")
+                l_pwd = st.text_input("密碼", type="password", placeholder="請輸入密碼")
                 
                 st.write("")
                 if st.form_submit_button("登入我的帳本 ➔", type="primary", use_container_width=True):
@@ -652,7 +649,7 @@ if st.session_state["current_code"] is None and st.session_state["auth_user"] is
     user_email = current_user["email"]
     user_name = current_user["name"]
 
-    col_u1, col_u2 = st.columns([3.6, 1.4])
+    col_u1, col_u2 = st.columns([3.8, 1.4])
     with col_u1:
         st.markdown(f"### 👋 哈囉，{user_name}")
         st.caption(f"`{user_email}` ｜ 雲端已連線")
@@ -744,7 +741,7 @@ if st.session_state["current_code"] is None and st.session_state["auth_user"] is
     # 區塊 2：共同分帳行程
     with st.container(border=True):
         st.markdown("#### 👥 共同旅遊分帳")
-        st.caption("同行好友記帳、結算還款與分享直達網址。")
+        st.caption("同行好友記帳、結算還款與直接分享網址。")
         
         if group_books:
             for b in group_books:
@@ -850,55 +847,24 @@ if st.session_state["current_book_type"] == "personal":
     total_expense = sum(int(round(float(r["amount"]))) for r in p_records if r["record_type"] == "expense")
     net_surplus = total_income - total_expense
 
-    # 【頂部單行並排工具列】絕不折行
-    st.markdown('<div class="mobile-top-bar">', unsafe_allow_html=True)
-    c_pbar1, c_pbar2 = st.columns(2)
-    with c_pbar1:
-        if st.button("⬅️ 返回大廳", use_container_width=True):
+    # 側邊欄設定
+    with st.sidebar:
+        st.markdown("### ⚙️ 帳本選單與導航")
+        if st.button("⬅️ 返回帳本總覽大廳", use_container_width=True):
             st.session_state["current_code"] = None
             st.session_state["current_book_type"] = None
             st.session_state["confirm_del_p_active"] = False
             st.query_params.clear()
             st.rerun()
-    with c_pbar2:
-        if st.button("🔄 重新載入", use_container_width=True):
+
+        if st.button("🔄 即時重新整理資料", use_container_width=True):
             st.toast("🔄 已同步最新資料")
             st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    # 標題卡片
-    st.markdown(f"""
-    <div class="trip-banner">
-        <div class="trip-title-text">📖 {book_name}</div>
-        <div class="trip-badges">
-            <span class="trip-badge">代碼: {book_code}</span>
-            <span class="trip-badge">👤 {u_display}</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 現代 Hero 看板卡片
-    surplus_color = "#22C55E" if net_surplus >= 0 else "#F43F5E"
-    surplus_sign = "+" if net_surplus > 0 else ""
-    st.markdown(f"""
-    <div class="hero-card">
-        <div class="label">本帳本累積淨盈餘</div>
-        <div class="amount" style="color:{surplus_color};">{surplus_sign}${net_surplus:,}</div>
-        <div class="pill-group">
-            <div class="pill">💰 總收入 ${total_income:,}</div>
-            <div class="pill">💸 總支出 ${total_expense:,}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 側邊欄設定
-    with st.sidebar:
-        st.markdown("### ⚙️ 個人帳本設定")
         with st.container(border=True):
             st.markdown("**🎨 介面主題色**")
             def on_theme_change():
                 st.session_state["theme_name"] = st.session_state["theme_selector_p"]
-            
             cur_p_theme = st.session_state["theme_name"] if st.session_state["theme_name"] in theme_keys else theme_keys[0]
             st.selectbox("選擇主題色調：", options=theme_keys, index=theme_keys.index(cur_p_theme), key="theme_selector_p", on_change=on_theme_change, label_visibility="collapsed")
 
@@ -939,6 +905,20 @@ if st.session_state["current_book_type"] == "personal":
                     if st.button("前往確認刪除", type="secondary", use_container_width=True):
                         st.session_state["confirm_del_p_active"] = True
                         st.rerun()
+
+    # 頂部多巴胺 Hero 看板卡片
+    surplus_color = "#FFFFFF"
+    surplus_sign = "+" if net_surplus > 0 else ""
+    st.markdown(f"""
+    <div class="vibrant-hero">
+        <div class="hero-title-badge">📖 {book_name} · {u_display}</div>
+        <div class="hero-amount">{surplus_sign}${net_surplus:,}</div>
+        <div class="hero-chips">
+            <div class="hero-chip">💰 總收入 ${total_income:,}</div>
+            <div class="hero-chip">💸 總支出 ${total_expense:,}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     default_expense_cats = ["食物", "購物", "家用", "交通", "醫療", "娛樂", "儲蓄", "保險", "其他"]
     default_income_cats = ["薪水", "獎金", "回饋", "股息"]
@@ -1004,18 +984,18 @@ if st.session_state["current_book_type"] == "personal":
             st.markdown("##### 📋 支出明細清單")
             if exp_list:
                 for r in exp_list[:30]:
-                    icon = get_cat_icon(r['category'])
+                    style = get_cat_style(r['category'])
                     amt_str = f"-${int(round(float(r['amount']))):,}"
                     st.markdown(f"""
-                    <div class="tx-item">
-                        <div class="tx-left">
-                            <div class="tx-avatar">{icon}</div>
-                            <div class="tx-info">
-                                <div class="tx-title">{r['item']}</div>
-                                <div class="tx-subtitle">{r['category']} · {r.get('record_date')}</div>
+                    <div class="tx-card">
+                        <div class="tx-card-left">
+                            <div class="tx-avatar-box" style="background:{style['bg']}; color:{style['color']};">{style['icon']}</div>
+                            <div class="tx-info-box">
+                                <div class="tx-title-text">{r['item']}</div>
+                                <div class="tx-sub-text">{r['category']} · {r.get('record_date')}</div>
                             </div>
                         </div>
-                        <div class="tx-amount" style="color:#EF4444;">{amt_str}</div>
+                        <div class="tx-price-text" style="color:#EF4444;">{amt_str}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -1100,18 +1080,18 @@ if st.session_state["current_book_type"] == "personal":
             st.markdown("##### 📋 收入明細清單")
             if inc_list:
                 for r in inc_list[:30]:
-                    icon = get_cat_icon(r['category'])
+                    style = get_cat_style(r['category'])
                     amt_str = f"+${int(round(float(r['amount']))):,}"
                     st.markdown(f"""
-                    <div class="tx-item">
-                        <div class="tx-left">
-                            <div class="tx-avatar">{icon}</div>
-                            <div class="tx-info">
-                                <div class="tx-title">{r['item']}</div>
-                                <div class="tx-subtitle">{r['category']} · {r.get('record_date')}</div>
+                    <div class="tx-card">
+                        <div class="tx-card-left">
+                            <div class="tx-avatar-box" style="background:{style['bg']}; color:{style['color']};">{style['icon']}</div>
+                            <div class="tx-info-box">
+                                <div class="tx-title-text">{r['item']}</div>
+                                <div class="tx-sub-text">{r['category']} · {r.get('record_date')}</div>
                             </div>
                         </div>
-                        <div class="tx-amount" style="color:#10B981;">{amt_str}</div>
+                        <div class="tx-price-text" style="color:#10B981;">{amt_str}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -1173,94 +1153,26 @@ logs = get_logs(trip_code)
 total_trip_expense = sum(int(round(float(e["amount"]))) for e in expenses)
 id_to_exp = {e["id"]: e for e in expenses}
 
-# 【核心修復 2】頂部功能列：一行三個緊湊小膠囊按鈕，絕不折行變成巨大長條
-st.markdown('<div class="mobile-top-bar">', unsafe_allow_html=True)
-c_bar1, c_bar2, c_bar3 = st.columns([1, 1, 1])
-
-with c_bar1:
-    if st.button("⬅️ 返回大廳", use_container_width=True):
+# 側邊欄（全部功能按鈕收納於此，頂部不再有巨大長條按鈕）
+with st.sidebar:
+    st.markdown("### 🧭 導航與功能選單")
+    if st.button("⬅️ 返回總覽大廳", use_container_width=True):
         st.session_state["current_code"] = None
         st.session_state["current_book_type"] = None
         st.session_state["confirm_del_group_active"] = False
         st.query_params.clear()
         st.rerun()
 
-with c_bar2:
-    with st.popover("🔗 分享網址", use_container_width=True):
-        st.markdown(f"**📤 分享【{trip_name}】**")
-        st.caption("同行好友點擊即可**免登入直接進入**：")
-        base_url = get_current_base_url()
-        full_share_url = f"{base_url}/?trip={trip_code}"
-        st.code(full_share_url, language="text")
-        st.components.v1.html(f"""
-        <div style="display:flex; flex-direction:column; gap:6px; font-family:-apple-system,sans-serif;">
-            <input type="text" id="shareUrlBox" value="{full_share_url}" readonly style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; background:#f8fafc; color:#334155; box-sizing:border-box;" />
-            <button id="copyBtn" style="background:{current_theme['gradient']}; color:white; border:none; padding:9px 12px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; width:100%;">📋 複製直達網址</button>
-            <div id="copyNotice" style="font-size:12px; color:#16a34a; font-weight:700; display:none; text-align:center;">✅ 網址已複製！</div>
-        </div>
-        <script>
-            try {{
-                if (window.parent && window.parent.location && window.parent.location.origin) {{
-                    document.getElementById('shareUrlBox').value = window.parent.location.origin + window.parent.location.pathname + '?trip={trip_code}';
-                }}
-            }} catch(e) {{}}
-            document.getElementById('copyBtn').addEventListener('click', function() {{
-                const inputEl = document.getElementById('shareUrlBox');
-                inputEl.select();
-                inputEl.setSelectionRange(0, 99999);
-                function showSuccess() {{
-                    document.getElementById('copyBtn').innerText = '✅ 複製成功！';
-                    document.getElementById('copyNotice').style.display = 'block';
-                    setTimeout(() => {{
-                        document.getElementById('copyBtn').innerText = '📋 複製直達網址';
-                        document.getElementById('copyNotice').style.display = 'none';
-                    }}, 2500);
-                }}
-                if (navigator.clipboard && window.isSecureContext) {{
-                    navigator.clipboard.writeText(inputEl.value).then(showSuccess).catch(() => {{ document.execCommand('copy'); showSuccess(); }});
-                }} else {{
-                    document.execCommand('copy'); showSuccess();
-                }}
-            }});
-        </script>
-        """, height=110)
-        st.caption(f"🔑 邀請碼：`{trip_code}`")
-
-with c_bar3:
-    if st.button("🔄 重新整理", use_container_width=True):
+    if st.button("🔄 即時重新整理", use_container_width=True):
         st.toast("🔄 已同步最新資料")
         st.rerun()
 
-st.markdown('</div>', unsafe_allow_html=True)
+    with st.expander("🔗 邀請同行好友加入 (免登入網址)"):
+        base_url = get_current_base_url()
+        full_share_url = f"{base_url}/?trip={trip_code}"
+        st.code(full_share_url, language="text")
+        st.caption(f"專屬邀請代號：`{trip_code}`")
 
-# 旅程標題與身分資訊卡片
-st.markdown(f"""
-<div class="trip-banner">
-    <div class="trip-title-text">✈️ {trip_name}</div>
-    <div class="trip-badges">
-        <span class="trip-badge">🔑 {trip_code}</span>
-        <span class="trip-badge">👤 {active_operator_name if active_operator_name else '訪客'}</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# 現代 Hero 看板（緊湊版，不佔用垂直空間）
-avg_expense = int(round(total_trip_expense / len(members))) if members else 0
-st.markdown(f"""
-<div class="hero-card">
-    <div class="label">全團累積總花費</div>
-    <div class="amount">${total_trip_expense:,}</div>
-    <div class="pill-group">
-        <div class="pill">👥 成員共 {len(members)} 位</div>
-        <div class="pill">💳 每人平均約 ${avg_expense:,}</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# 側邊欄
-with st.sidebar:
-    st.markdown("### ⚙️ 工具與成員管理")
-    
     with st.container(border=True):
         st.markdown("**👤 目前操作者（我是誰）**")
         if members:
@@ -1358,14 +1270,13 @@ with st.sidebar:
                         st.session_state["current_book_type"] = None
                         st.session_state["confirm_del_group_active"] = False
                         st.query_params.clear()
-                        st.toast("🗑️ 共同行程帳本已徹底銷毀！")
                         st.rerun()
                 with c_gdel_n:
                     if st.button("取消", use_container_width=True, key="act_g_del_canc"):
                         st.session_state["confirm_del_group_active"] = False
                         st.rerun()
             else:
-                st.caption("銷毀後無法還原，需驗證 4~6 位管理員密碼。")
+                st.caption("銷毀後無法還原，需驗證管理員密碼。")
                 pin_try = st.text_input("輸入管理員密碼", type="password", key="active_del_g_pin", placeholder="4~6位密碼")
                 if st.button("驗證密碼並前往刪除", type="secondary", use_container_width=True):
                     if not pin_try.strip():
@@ -1376,18 +1287,32 @@ with st.sidebar:
                         st.session_state["confirm_del_group_active"] = True
                         st.rerun()
 
+# 主畫面頂部：活潑 Hero 卡片（取代零碎按鈕與死板文字）
+avg_expense = int(round(total_trip_expense / len(members))) if members else 0
+st.markdown(f"""
+<div class="vibrant-hero">
+    <div class="hero-title-badge">✈️ {trip_name} · 🔑 {trip_code}</div>
+    <div class="hero-amount">${total_trip_expense:,}</div>
+    <div class="hero-chips">
+        <div class="hero-chip">👥 {len(members)} 位夥伴</div>
+        <div class="hero-chip">💳 人均約 ${avg_expense:,}</div>
+        <div class="hero-chip">👤 {active_operator_name if active_operator_name else '訪客'}</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 # 共同分帳三膠囊分頁
 tab1, tab2, tab3 = st.tabs(["📝 新增消費", "👤 個人帳務", "📊 結算還款"])
 
 # Tab 1: 新增消費與分攤明細
 with tab1:
     with st.container(border=True):
-        st.markdown("##### ➕ 新增消費")
+        st.markdown("##### ➕ 新增一筆消費")
         if len(members) < 1:
             st.warning("請先在左側選單新增成員！")
         else:
             with st.form("add_expense_form", clear_on_submit=True):
-                item_name = st.text_input("項目名稱", placeholder="例如：第一天晚餐、計程車、門票")
+                item_name = st.text_input("消費項目", placeholder="例如：第一天晚餐、計程車、門票")
                 amount = st.number_input("金額 (NTD / 結算幣別)", min_value=1, step=50, format="%d")
 
                 c_payer, c_split = st.columns(2)
@@ -1425,15 +1350,15 @@ with tab1:
             for e in shared_expenses[:30]:
                 amt_str = f"${int(round(float(e['amount']))):,}"
                 st.markdown(f"""
-                <div class="tx-item">
-                    <div class="tx-left">
-                        <div class="tx-avatar">✈️</div>
-                        <div class="tx-info">
-                            <div class="tx-title">#{shared_id_to_seq[e['id']]} {e['item']}</div>
-                            <div class="tx-subtitle">由 <b>{e['paid_by']}</b> 代墊 · {format_time(e.get('created_at'))}</div>
+                <div class="tx-card">
+                    <div class="tx-card-left">
+                        <div class="tx-avatar-box" style="background:#E0F2FE; color:#0369A1;">✈️</div>
+                        <div class="tx-info-box">
+                            <div class="tx-title-text">#{shared_id_to_seq[e['id']]} {e['item']}</div>
+                            <div class="tx-sub-text">由 <b>{e['paid_by']}</b> 代墊 · {format_time(e.get('created_at'))}</div>
                         </div>
                     </div>
-                    <div class="tx-amount" style="color:{current_theme['primary']};">{amt_str}</div>
+                    <div class="tx-price-text" style="color:{current_theme['primary']};">{amt_str}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -1547,15 +1472,15 @@ with tab2:
 
                 for p in personal_list:
                     st.markdown(f"""
-                    <div class="tx-item">
-                        <div class="tx-left">
-                            <div class="tx-avatar">🛍️</div>
-                            <div class="tx-info">
-                                <div class="tx-title">#{p['#']} {p['項目']}</div>
-                                <div class="tx-subtitle">個人自費 · {p['時間']}</div>
+                    <div class="tx-card">
+                        <div class="tx-card-left">
+                            <div class="tx-avatar-box" style="background:#FCE7F3; color:#BE185D;">🛍️</div>
+                            <div class="tx-info-box">
+                                <div class="tx-title-text">#{p['#']} {p['項目']}</div>
+                                <div class="tx-sub-text">個人自費 · {p['時間']}</div>
                             </div>
                         </div>
-                        <div class="tx-amount" style="color:#EF4444;">{p['自費金額']}</div>
+                        <div class="tx-price-text" style="color:#EF4444;">{p['自費金額']}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -1589,15 +1514,15 @@ with tab2:
             if group_list:
                 for g in group_list[:30]:
                     st.markdown(f"""
-                    <div class="tx-item">
-                        <div class="tx-left">
-                            <div class="tx-avatar">👥</div>
-                            <div class="tx-info">
-                                <div class="tx-title">#{g['#']} {g['項目']}</div>
-                                <div class="tx-subtitle">由 <b>{g['代墊人']}</b> 代墊 · 共{g['人數']}分攤</div>
+                    <div class="tx-card">
+                        <div class="tx-card-left">
+                            <div class="tx-avatar-box" style="background:#EDE9FE; color:#6D28D9;">👥</div>
+                            <div class="tx-info-box">
+                                <div class="tx-title-text">#{g['#']} {g['項目']}</div>
+                                <div class="tx-sub-text">由 <b>{g['代墊人']}</b> 代墊 · 共{g['人數']}分攤</div>
                             </div>
                         </div>
-                        <div class="tx-amount" style="color:{current_theme['primary']};">{g['我的份額']}</div>
+                        <div class="tx-price-text" style="color:{current_theme['primary']};">{g['我的份額']}</div>
                     </div>
                     """, unsafe_allow_html=True)
             else:
@@ -1624,18 +1549,18 @@ with tab3:
             st.markdown("##### 📋 每人結算淨額")
             for k, v in balances.items():
                 if v > 0:
-                    status_badge = f"<span style='color:#10B981; font-weight:800; font-size:1.05rem;'>應收回 +${v:,}</span>"
+                    status_badge = f"<span style='color:#10B981; font-weight:900; font-size:1.05rem;'>應收回 +${v:,}</span>"
                 elif v < 0:
-                    status_badge = f"<span style='color:#EF4444; font-weight:800; font-size:1.05rem;'>應支付 -${abs(v):,}</span>"
+                    status_badge = f"<span style='color:#EF4444; font-weight:900; font-size:1.05rem;'>應支付 -${abs(v):,}</span>"
                 else:
                     status_badge = f"<span style='color:#64748B; font-weight:700;'>已結清 $0</span>"
 
                 st.markdown(f"""
-                <div class="tx-item">
-                    <div class="tx-left">
-                        <div class="tx-avatar">👤</div>
-                        <div class="tx-info">
-                            <div class="tx-title">{k}</div>
+                <div class="tx-card">
+                    <div class="tx-card-left">
+                        <div class="tx-avatar-box" style="background:#F1F5F9; color:#334155;">👤</div>
+                        <div class="tx-info-box">
+                            <div class="tx-title-text">{k}</div>
                         </div>
                     </div>
                     <div>{status_badge}</div>
