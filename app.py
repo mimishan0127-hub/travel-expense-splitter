@@ -78,14 +78,13 @@ THEMES = {
     }
 }
 
-# 【核心防護】：安全讀取主題，若舊版本暫存名稱不匹配則自動重設，100% 杜絕 KeyError
 theme_keys = list(THEMES.keys())
 if "theme_name" not in st.session_state or st.session_state["theme_name"] not in THEMES:
     st.session_state["theme_name"] = theme_keys[0]
 
 current_theme = THEMES[st.session_state["theme_name"]]
 
-# ==================== 行動端頂級美學 CSS 注入 ====================
+# ==================== 徹底解決手機排版破版之 CSS ====================
 st.markdown(f"""
 <style>
 html, body, [class*="css"] {{
@@ -98,90 +97,98 @@ html, body, [class*="css"] {{
 .block-container {{
     padding-top: 3.2rem !important;
     padding-bottom: 3.5rem !important;
-    max-width: 760px !important;
+    max-width: 680px !important;
     margin: 0 auto;
 }}
 
 @media (max-width: 768px) {{
     .block-container {{
-        padding-top: 4.6rem !important;
-        padding-left: 0.95rem !important;
-        padding-right: 0.95rem !important;
+        padding-top: 4.4rem !important;
+        padding-left: 0.85rem !important;
+        padding-right: 0.85rem !important;
         padding-bottom: 3.5rem !important;
     }}
 }}
 
-div[data-testid="stVerticalBlockBorderWrapper"] {{
-    border-radius: 20px !important;
-    border: 1px solid rgba(226, 232, 240, 0.8) !important;
-    background-color: #FFFFFF !important;
-    padding: 1.25rem 1.15rem !important;
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02) !important;
-    margin-bottom: 0.9rem !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+/* 【核心修復 1】強制頂部按鈕列在手機端保持單行橫向並排，嚴禁向下折行變成巨大長條 */
+.mobile-top-bar [data-testid="stHorizontalBlock"] {{
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
 }}
-
-div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
-    background: #E2E8F0 !important;
-    padding: 4px !important;
-    border-radius: 16px !important;
-    gap: 4px !important;
-    border: none !important;
-    margin-bottom: 1rem !important;
-}}
-div[data-testid="stTabs"] button[data-testid="stTab"] {{
-    border-radius: 13px !important;
-    border: none !important;
-    padding: 10px 14px !important;
-    font-size: 0.96rem !important;
-    font-weight: 700 !important;
-    color: #64748B !important;
-    background: transparent !important;
-    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+.mobile-top-bar [data-testid="column"] {{
+    min-width: 0 !important;
     flex: 1 1 0px !important;
-    text-align: center !important;
-}}
-div[data-testid="stTabs"] button[data-testid="stTab"][aria-selected="true"] {{
-    background-color: #FFFFFF !important;
-    color: {current_theme['primary']} !important;
-    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.08) !important;
-}}
-div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
-    display: none !important;
 }}
 
+/* 頂部按鈕高度適中、俐落美觀 */
+.mobile-top-bar button, .mobile-top-bar div[data-testid="stPopover"] > button {{
+    min-height: 38px !important;
+    height: 38px !important;
+    border-radius: 11px !important;
+    font-size: 0.88rem !important;
+    padding: 0 6px !important;
+    font-weight: 600 !important;
+    border: 1px solid #E2E8F0 !important;
+    background: #FFFFFF !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+}}
+
+/* 旅程頂部標題卡片 */
+.trip-banner {{
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}}
+.trip-title-text {{
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+}}
+.trip-badges {{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}}
+.trip-badge {{
+    background: {current_theme['tag_bg']};
+    color: {current_theme['tag_text']};
+    border: 1px solid {current_theme['tag_border']};
+    border-radius: 8px;
+    padding: 3px 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}}
+
+/* 現代 Hero 看板（緊湊版，不佔用垂直空間） */
 .hero-card {{
     background: {current_theme['hero_bg']};
     color: #FFFFFF;
-    border-radius: 22px;
-    padding: 1.4rem 1.3rem;
-    box-shadow: 0 10px 30px -4px {current_theme['glow']};
-    margin-bottom: 1rem;
-    position: relative;
-    overflow: hidden;
-}}
-.hero-card::after {{
-    content: "";
-    position: absolute;
-    bottom: -20px;
-    right: -20px;
-    width: 130px;
-    height: 130px;
-    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
-    border-radius: 50%;
+    border-radius: 18px;
+    padding: 1.1rem 1.2rem;
+    box-shadow: 0 8px 24px -3px {current_theme['glow']};
+    margin-bottom: 14px;
 }}
 .hero-card .label {{
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.78);
-    font-weight: 500;
-    margin-bottom: 4px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.82);
+    font-weight: 600;
+    margin-bottom: 2px;
 }}
 .hero-card .amount {{
-    font-size: clamp(2rem, 8vw, 2.6rem);
+    font-size: 2.1rem;
     font-weight: 800;
     letter-spacing: -0.03em;
-    line-height: 1.1;
-    margin-bottom: 14px;
+    line-height: 1.15;
+    margin-bottom: 10px;
 }}
 .hero-card .pill-group {{
     display: flex;
@@ -189,40 +196,80 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
     flex-wrap: wrap;
 }}
 .hero-card .pill {{
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(8px);
-    border-radius: 12px;
-    padding: 6px 12px;
-    font-size: 0.82rem;
+    border-radius: 10px;
+    padding: 5px 11px;
+    font-size: 0.8rem;
     font-weight: 600;
 }}
 
+/* 膠囊分頁導航 */
+div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
+    background: #E2E8F0 !important;
+    padding: 4px !important;
+    border-radius: 14px !important;
+    gap: 4px !important;
+    border: none !important;
+    margin-bottom: 12px !important;
+}}
+div[data-testid="stTabs"] button[data-testid="stTab"] {{
+    border-radius: 11px !important;
+    border: none !important;
+    padding: 8px 12px !important;
+    font-size: 0.92rem !important;
+    font-weight: 700 !important;
+    color: #64748B !important;
+    background: transparent !important;
+    flex: 1 1 0px !important;
+    text-align: center !important;
+}}
+div[data-testid="stTabs"] button[data-testid="stTab"][aria-selected="true"] {{
+    background-color: #FFFFFF !important;
+    color: {current_theme['primary']} !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+}}
+div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
+    display: none !important;
+}}
+
+/* 懸浮白底卡片 */
+div[data-testid="stVerticalBlockBorderWrapper"] {{
+    border-radius: 18px !important;
+    border: 1px solid #E2E8F0 !important;
+    background-color: #FFFFFF !important;
+    padding: 1.1rem 1rem !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
+    margin-bottom: 10px !important;
+}}
+
+/* 交易項目流水卡片 (Transaction Item) */
 .tx-item {{
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 14px;
+    padding: 10px 12px;
     background: #FFFFFF;
-    border-radius: 16px;
+    border-radius: 14px;
     border: 1px solid #F1F5F9;
     margin-bottom: 8px;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
 }}
 .tx-left {{
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex: 1;
     min-width: 0;
 }}
 .tx-avatar {{
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     background-color: {current_theme['badge']};
     flex-shrink: 0;
 }}
@@ -232,29 +279,30 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
 }}
 .tx-title {{
     font-weight: 700;
-    font-size: 0.98rem;
+    font-size: 0.94rem;
     color: #1E293B;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }}
 .tx-subtitle {{
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: #64748B;
-    margin-top: 2px;
+    margin-top: 1px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }}
 .tx-amount {{
-    font-size: 1.12rem;
+    font-size: 1.05rem;
     font-weight: 800;
     letter-spacing: -0.01em;
     text-align: right;
-    margin-left: 12px;
+    margin-left: 10px;
     flex-shrink: 0;
 }}
 
+/* 表單與主按鈕 */
 html body button[data-testid*="primary"],
 html body button[data-testid="baseButton-primary"],
 html body button[kind="primary"],
@@ -263,35 +311,23 @@ html body div[data-testid="stFormSubmitButton"] > button {{
     background: {current_theme['gradient']} !important;
     border: none !important;
     color: #FFFFFF !important;
-    border-radius: 15px !important;
+    border-radius: 13px !important;
     font-weight: 700 !important;
-    font-size: 1.02rem !important;
-    min-height: 48px !important;
-    box-shadow: 0 4px 14px {current_theme['glow']} !important;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    font-size: 0.98rem !important;
+    min-height: 44px !important;
+    box-shadow: 0 3px 10px {current_theme['glow']} !important;
 }}
 html body button[data-testid*="primary"]:active,
 html body div[data-testid="stFormSubmitButton"] > button:active {{
-    transform: scale(0.97) !important;
-}}
-
-html body button[data-testid*="secondary"],
-html body button[data-testid="baseButton-secondary"] {{
-    border-radius: 13px !important;
-    border: 1px solid #E2E8F0 !important;
-    background: #FFFFFF !important;
-    color: #334155 !important;
-    font-size: 0.92rem !important;
-    font-weight: 600 !important;
-    min-height: 42px !important;
+    transform: scale(0.98) !important;
 }}
 
 input[type="text"], input[type="password"], input[type="number"] {{
-    border-radius: 13px !important;
+    border-radius: 12px !important;
     border: 1.5px solid #E2E8F0 !important;
-    min-height: 46px !important;
-    font-size: 1rem !important;
-    padding: 9px 14px !important;
+    min-height: 42px !important;
+    font-size: 0.96rem !important;
+    padding: 8px 12px !important;
     background-color: #FAFAFA !important;
 }}
 input:focus {{
@@ -307,8 +343,8 @@ html body div[data-testid="stMultiSelect"] [data-baseweb="tag"],
 html body div[data-testid="stMultiSelect"] span:has(svg) {{
     background-color: {current_theme['tag_bg']} !important;
     border: 1.5px solid {current_theme['tag_border']} !important;
-    border-radius: 10px !important;
-    padding: 4px 10px !important;
+    border-radius: 9px !important;
+    padding: 3px 8px !important;
 }}
 html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] span {{
     color: {current_theme['tag_text']} !important;
@@ -534,10 +570,10 @@ elif url_book and st.session_state["current_code"] != url_book and st.session_st
 # ==============================================================================
 if st.session_state["current_code"] is None and st.session_state["auth_user"] is None:
     st.markdown("""
-    <div style='text-align: center; margin-top: 10px; margin-bottom: 24px;'>
-        <div style='font-size: 40px; margin-bottom: 6px;'>📒</div>
-        <h2 style='margin:0; font-weight:800; font-size:1.65rem; color:#0F172A;'>個人 / 共同分帳記事簿</h2>
-        <p style='color:#64748B; font-size:0.92rem; margin-top:6px;'>點擊好友連結免登入直達；管理私帳請由此登入</p>
+    <div style='text-align: center; margin-top: 6px; margin-bottom: 20px;'>
+        <div style='font-size: 38px; margin-bottom: 4px;'>📒</div>
+        <h2 style='margin:0; font-weight:800; font-size:1.6rem; color:#0F172A;'>個人 / 共同分帳記事簿</h2>
+        <p style='color:#64748B; font-size:0.9rem; margin-top:4px;'>點擊好友連結免登入直達；管理私帳請由此登入</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -814,23 +850,32 @@ if st.session_state["current_book_type"] == "personal":
     total_expense = sum(int(round(float(r["amount"]))) for r in p_records if r["record_type"] == "expense")
     net_surplus = total_income - total_expense
 
-    col_pb1, col_pb2 = st.columns([3.8, 1.4])
-    with col_pb1:
-        st.markdown(f"### 📖 {book_name}")
-        st.caption(f"👤 `{u_display}` ｜ 代碼：`{book_code}`")
-    with col_pb2:
-        c_p1, c_p2 = st.columns(2)
-        with c_p1:
-            if st.button("🔄", help="重新載入", use_container_width=True):
-                st.toast("🔄 已同步最新資料")
-                st.rerun()
-        with c_p2:
-            if st.button("⬅️", help="返回大廳", use_container_width=True):
-                st.session_state["current_code"] = None
-                st.session_state["current_book_type"] = None
-                st.session_state["confirm_del_p_active"] = False
-                st.query_params.clear()
-                st.rerun()
+    # 【頂部單行並排工具列】絕不折行
+    st.markdown('<div class="mobile-top-bar">', unsafe_allow_html=True)
+    c_pbar1, c_pbar2 = st.columns(2)
+    with c_pbar1:
+        if st.button("⬅️ 返回大廳", use_container_width=True):
+            st.session_state["current_code"] = None
+            st.session_state["current_book_type"] = None
+            st.session_state["confirm_del_p_active"] = False
+            st.query_params.clear()
+            st.rerun()
+    with c_pbar2:
+        if st.button("🔄 重新載入", use_container_width=True):
+            st.toast("🔄 已同步最新資料")
+            st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # 標題卡片
+    st.markdown(f"""
+    <div class="trip-banner">
+        <div class="trip-title-text">📖 {book_name}</div>
+        <div class="trip-badges">
+            <span class="trip-badge">代碼: {book_code}</span>
+            <span class="trip-badge">👤 {u_display}</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # 現代 Hero 看板卡片
     surplus_color = "#22C55E" if net_surplus >= 0 else "#F43F5E"
@@ -909,7 +954,7 @@ if st.session_state["current_book_type"] == "personal":
         with st.container(border=True):
             st.markdown("##### ➕ 新增支出消費")
             with st.form("add_personal_expense_form", clear_on_submit=True):
-                exp_item = st.text_input("消費名稱", placeholder="例如：午餐便當、家樂福、高鐵票")
+                exp_item = st.text_input("消費名稱", placeholder="例如：午餐便當、高鐵票")
                 exp_amt = st.number_input("金額 (NTD)", min_value=1, step=50, format="%d")
 
                 r2_c1, r2_c2 = st.columns(2)
@@ -1128,84 +1173,78 @@ logs = get_logs(trip_code)
 total_trip_expense = sum(int(round(float(e["amount"]))) for e in expenses)
 id_to_exp = {e["id"]: e for e in expenses}
 
-# 頂部導航
-col_h1, col_h2 = st.columns([3.6, 1.4])
-with col_h1:
-    st.markdown(f"### ✈️ {trip_name}")
-    st.caption(f"🔑 `{trip_code}` ｜ 👤 `{active_operator_name if active_operator_name else '訪客'}`")
-with col_h2:
-    col_btn1, col_btn2, col_btn3 = st.columns(3)
-    with col_btn1:
-        if st.button("🔄", help="手動更新", use_container_width=True):
-            st.toast("🔄 已同步最新資料")
-            st.rerun()
-    with col_btn2:
-        with st.popover("🔗", help="分享行程邀請連結", use_container_width=True):
-            st.markdown(f"**📤 分享【{trip_name}】**")
-            st.caption("好友點擊即可**免登入直接進入**：")
-            
-            base_url = get_current_base_url()
-            full_share_url = f"{base_url}/?trip={trip_code}"
+# 【核心修復 2】頂部功能列：一行三個緊湊小膠囊按鈕，絕不折行變成巨大長條
+st.markdown('<div class="mobile-top-bar">', unsafe_allow_html=True)
+c_bar1, c_bar2, c_bar3 = st.columns([1, 1, 1])
 
-            st.code(full_share_url, language="text")
+with c_bar1:
+    if st.button("⬅️ 返回大廳", use_container_width=True):
+        st.session_state["current_code"] = None
+        st.session_state["current_book_type"] = None
+        st.session_state["confirm_del_group_active"] = False
+        st.query_params.clear()
+        st.rerun()
 
-            st.components.v1.html(f"""
-            <div style="display:flex; flex-direction:column; gap:6px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
-                <input type="text" id="shareUrlBox" value="{full_share_url}" readonly style="
-                    width: 100%; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13px; background-color: #f8fafc; color: #334155; box-sizing: border-box;
-                " />
-                <button id="copyBtn" style="
-                    background: {current_theme['gradient']}; color: white; border: none; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%;
-                ">📋 點擊一鍵複製直達網址</button>
-                <div id="copyNotice" style="font-size:12px; color:#16a34a; font-weight:700; display:none; text-align:center; margin-top:2px;">
-                    ✅ 專屬網址已複製至剪貼簿！
-                </div>
-            </div>
-            <script>
-                try {{
-                    if (window.parent && window.parent.location && window.parent.location.origin) {{
-                        const origin = window.parent.location.origin;
-                        const pathname = window.parent.location.pathname;
-                        document.getElementById('shareUrlBox').value = origin + pathname + '?trip={trip_code}';
-                    }}
-                }} catch(e) {{}}
+with c_bar2:
+    with st.popover("🔗 分享網址", use_container_width=True):
+        st.markdown(f"**📤 分享【{trip_name}】**")
+        st.caption("同行好友點擊即可**免登入直接進入**：")
+        base_url = get_current_base_url()
+        full_share_url = f"{base_url}/?trip={trip_code}"
+        st.code(full_share_url, language="text")
+        st.components.v1.html(f"""
+        <div style="display:flex; flex-direction:column; gap:6px; font-family:-apple-system,sans-serif;">
+            <input type="text" id="shareUrlBox" value="{full_share_url}" readonly style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; background:#f8fafc; color:#334155; box-sizing:border-box;" />
+            <button id="copyBtn" style="background:{current_theme['gradient']}; color:white; border:none; padding:9px 12px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; width:100%;">📋 複製直達網址</button>
+            <div id="copyNotice" style="font-size:12px; color:#16a34a; font-weight:700; display:none; text-align:center;">✅ 網址已複製！</div>
+        </div>
+        <script>
+            try {{
+                if (window.parent && window.parent.location && window.parent.location.origin) {{
+                    document.getElementById('shareUrlBox').value = window.parent.location.origin + window.parent.location.pathname + '?trip={trip_code}';
+                }}
+            }} catch(e) {{}}
+            document.getElementById('copyBtn').addEventListener('click', function() {{
+                const inputEl = document.getElementById('shareUrlBox');
+                inputEl.select();
+                inputEl.setSelectionRange(0, 99999);
+                function showSuccess() {{
+                    document.getElementById('copyBtn').innerText = '✅ 複製成功！';
+                    document.getElementById('copyNotice').style.display = 'block';
+                    setTimeout(() => {{
+                        document.getElementById('copyBtn').innerText = '📋 複製直達網址';
+                        document.getElementById('copyNotice').style.display = 'none';
+                    }}, 2500);
+                }}
+                if (navigator.clipboard && window.isSecureContext) {{
+                    navigator.clipboard.writeText(inputEl.value).then(showSuccess).catch(() => {{ document.execCommand('copy'); showSuccess(); }});
+                }} else {{
+                    document.execCommand('copy'); showSuccess();
+                }}
+            }});
+        </script>
+        """, height=110)
+        st.caption(f"🔑 邀請碼：`{trip_code}`")
 
-                document.getElementById('copyBtn').addEventListener('click', function() {{
-                    const inputEl = document.getElementById('shareUrlBox');
-                    inputEl.select();
-                    inputEl.setSelectionRange(0, 99999);
-                    function showSuccess() {{
-                        const btn = document.getElementById('copyBtn');
-                        const notice = document.getElementById('copyNotice');
-                        btn.innerText = '✅ 複製成功！';
-                        notice.style.display = 'block';
-                        setTimeout(() => {{
-                            btn.innerText = '📋 點擊一鍵複製直達網址';
-                            notice.style.display = 'none';
-                        }}, 2500);
-                    }}
-                    if (navigator.clipboard && window.isSecureContext) {{
-                        navigator.clipboard.writeText(inputEl.value).then(showSuccess).catch(function() {{
-                            try {{ document.execCommand('copy'); showSuccess(); }} catch(err) {{ alert('複製失敗，請手動選取網址！'); }}
-                        }});
-                    }} else {{
-                        try {{ document.execCommand('copy'); showSuccess(); }} catch(err) {{ alert('複製失敗，請手動選取網址！'); }}
-                    }}
-                }});
-            </script>
-            """, height=115)
+with c_bar3:
+    if st.button("🔄 重新整理", use_container_width=True):
+        st.toast("🔄 已同步最新資料")
+        st.rerun()
 
-            st.caption(f"🔑 7 碼邀請代碼：`{trip_code}`")
+st.markdown('</div>', unsafe_allow_html=True)
 
-    with col_btn3:
-        if st.button("⬅️", help="返回大廳", use_container_width=True):
-            st.session_state["current_code"] = None
-            st.session_state["current_book_type"] = None
-            st.session_state["confirm_del_group_active"] = False
-            st.query_params.clear()
-            st.rerun()
+# 旅程標題與身分資訊卡片
+st.markdown(f"""
+<div class="trip-banner">
+    <div class="trip-title-text">✈️ {trip_name}</div>
+    <div class="trip-badges">
+        <span class="trip-badge">🔑 {trip_code}</span>
+        <span class="trip-badge">👤 {active_operator_name if active_operator_name else '訪客'}</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-# 現代 Hero 看板卡片
+# 現代 Hero 看板（緊湊版，不佔用垂直空間）
 avg_expense = int(round(total_trip_expense / len(members))) if members else 0
 st.markdown(f"""
 <div class="hero-card">
@@ -1237,7 +1276,6 @@ with st.sidebar:
         st.markdown("**🎨 介面主題色**")
         def on_theme_change():
             st.session_state["theme_name"] = st.session_state["theme_selector_g"]
-        
         cur_g_theme = st.session_state["theme_name"] if st.session_state["theme_name"] in theme_keys else theme_keys[0]
         st.selectbox("選擇主題色調：", options=theme_keys, index=theme_keys.index(cur_g_theme), key="theme_selector_g", on_change=on_theme_change, label_visibility="collapsed")
 
@@ -1586,9 +1624,9 @@ with tab3:
             st.markdown("##### 📋 每人結算淨額")
             for k, v in balances.items():
                 if v > 0:
-                    status_badge = f"<span style='color:#10B981; font-weight:800; font-size:1.1rem;'>應收回 +${v:,}</span>"
+                    status_badge = f"<span style='color:#10B981; font-weight:800; font-size:1.05rem;'>應收回 +${v:,}</span>"
                 elif v < 0:
-                    status_badge = f"<span style='color:#EF4444; font-weight:800; font-size:1.1rem;'>應支付 -${abs(v):,}</span>"
+                    status_badge = f"<span style='color:#EF4444; font-weight:800; font-size:1.05rem;'>應支付 -${abs(v):,}</span>"
                 else:
                     status_badge = f"<span style='color:#64748B; font-weight:700;'>已結清 $0</span>"
 
@@ -1642,7 +1680,7 @@ with tab3:
                 st.markdown("**📋 LINE 催款懶人包** (點擊右上角複製)")
                 share_text = f"✈️【{trip_name}】費用結算清單\n全團總累積花費：${total_trip_expense:,} 元\n" + "-"*20 + "\n"
                 share_text += "\n".join(line_messages)
-                share_text += "\n" + "-"*20 + "\n大家確認無誤後即可轉帳結清囉！"
+                share_text += "\n" + "-"*20 + "\n大家確認無誤後即可直接轉帳結清囉！"
                 st.code(share_text, language="text")
             else:
                 st.success("🎉 目前帳目完全平衡，大家互不相欠！")
