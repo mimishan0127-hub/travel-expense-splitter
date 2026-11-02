@@ -16,144 +16,143 @@ st.set_page_config(
     page_title="個人/共同分帳記事簿",
     page_icon="📒",
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="collapsed"
 )
 
-# ==================== 5 種極簡莫蘭迪風格配色 ====================
+# ==================== 5 種活潑生動微漸層莫蘭迪主題 ====================
 THEMES = {
-    "🌿 鼠尾草綠": {
-        "primary": "#385A48",
-        "hover": "#2B4537",
-        "tag_bg": "#E1EDE6",
-        "tag_border": "#9EC3AE",
-        "tag_text": "#1A3525",
-        "accent": "#4A7A60",
-        "light_glow": "rgba(56, 90, 72, 0.12)"
+    "🌿 活潑青蘋鼠尾草": {
+        "primary": "#3E7459",
+        "gradient": "linear-gradient(135deg, #3E7459 0%, #599F7B 100%)",
+        "tag_bg": "#DDF2E6",
+        "tag_border": "#9FD2B6",
+        "tag_text": "#163E2B",
+        "glow": "rgba(62, 116, 89, 0.22)",
+        "card_bg": "#F5FAF7"
     },
-    "🍂 暖陶土橘": {
-        "primary": "#BA5738",
-        "hover": "#984227",
-        "tag_bg": "#FAECE6",
-        "tag_border": "#E5A894",
-        "tag_text": "#612210",
-        "accent": "#D46E4E",
-        "light_glow": "rgba(186, 87, 56, 0.12)"
+    "🍂 暖陽落日焦糖": {
+        "primary": "#D4623C",
+        "gradient": "linear-gradient(135deg, #D4623C 0%, #E98A69 100%)",
+        "tag_bg": "#FDEAE3",
+        "tag_border": "#F3B099",
+        "tag_text": "#66230E",
+        "glow": "rgba(212, 98, 60, 0.22)",
+        "card_bg": "#FCF7F5"
     },
-    "🌊 暮靄靛藍": {
-        "primary": "#274E6F",
-        "hover": "#1A3750",
-        "tag_bg": "#E3EDF6",
-        "tag_border": "#96BCDE",
-        "tag_text": "#0F2840",
-        "accent": "#3B6D99",
-        "light_glow": "rgba(39, 78, 111, 0.12)"
+    "🌊 晴空湛藍暮靄": {
+        "primary": "#2D6DA4",
+        "gradient": "linear-gradient(135deg, #2D6DA4 0%, #5395D1 100%)",
+        "tag_bg": "#E2F0FD",
+        "tag_border": "#9AC8F5",
+        "tag_text": "#0F3254",
+        "glow": "rgba(45, 109, 164, 0.22)",
+        "card_bg": "#F5F9FD"
     },
-    "🌸 煙燻胭粉": {
-        "primary": "#9E475B",
-        "hover": "#7D3243",
-        "tag_bg": "#FAE8ED",
-        "tag_border": "#DC9CB0",
-        "tag_text": "#501725",
-        "accent": "#BA5F76",
-        "light_glow": "rgba(158, 71, 91, 0.12)"
+    "🌸 甜美蜜桃煙粉": {
+        "primary": "#B24C68",
+        "gradient": "linear-gradient(135deg, #B24C68 0%, #D47790 100%)",
+        "tag_bg": "#FDE9EF",
+        "tag_border": "#F1A8BD",
+        "tag_text": "#541427",
+        "glow": "rgba(178, 76, 104, 0.22)",
+        "card_bg": "#FCF6F8"
     },
-    "🌑 簡約冷灰": {
-        "primary": "#2B333E",
-        "hover": "#1B2027",
-        "tag_bg": "#EAECEF",
-        "tag_border": "#A8B1BD",
-        "tag_text": "#111418",
-        "accent": "#455060",
-        "light_glow": "rgba(43, 51, 62, 0.12)"
+    "🌑 俐落玄武晶石": {
+        "primary": "#364152",
+        "gradient": "linear-gradient(135deg, #364152 0%, #566479 100%)",
+        "tag_bg": "#ECEFF3",
+        "tag_border": "#B6C0CE",
+        "tag_text": "#1A202A",
+        "glow": "rgba(54, 65, 82, 0.22)",
+        "card_bg": "#F8FAFC"
     }
 }
 
 if "theme_name" not in st.session_state:
-    st.session_state["theme_name"] = "🌿 鼠尾草綠"
+    st.session_state["theme_name"] = "🌿 活潑青蘋鼠尾草"
 
 current_theme = THEMES[st.session_state["theme_name"]]
 
-# ==================== 頂級現代 UI / UX CSS 樣式系統 ====================
+# ==================== 手機極限優化 CSS 樣式系統 ====================
 st.markdown(f"""
 <style>
-/* 1. 字體與基礎排版 */
+/* 1. 字體與手機版安全留白 */
 html, body, [class*="css"] {{
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "PingFang TC", "Noto Sans TC", sans-serif;
     color: #1e293b;
-    letter-spacing: -0.012em;
+    -webkit-font-smoothing: antialiased;
 }}
 
 /* 電腦端頂部安全留白 */
 .block-container {{
     padding-top: 3.5rem !important;
-    padding-bottom: 2.5rem !important;
-    max-width: 1040px !important;
+    padding-bottom: 3.5rem !important;
+    max-width: 950px !important;
 }}
 
-/* 2. 手機端安全邊距 (防遮擋) */
+/* 手機螢幕極致適配：避開頂部工具列與瀏海 */
 @media (max-width: 768px) {{
     .block-container {{
-        padding-top: 4.8rem !important;
-        padding-left: 0.85rem !important;
-        padding-right: 0.85rem !important;
-        padding-bottom: 2rem !important;
-    }}
-    div[data-testid="stMetricValue"] {{
-        font-size: clamp(1.2rem, 4.5vw, 1.55rem) !important;
+        padding-top: 4.6rem !important;
+        padding-left: 0.9rem !important;
+        padding-right: 0.9rem !important;
+        padding-bottom: 3rem !important;
     }}
 }}
 
-/* 3. 膠囊分頁滑塊導航 (iOS Segmented Tabs) */
+/* 2. 活潑大圓角大卡片 (Large Rounded Surfaces) */
+div[data-testid="stVerticalBlockBorderWrapper"] {{
+    border-radius: 18px !important;
+    border: 1.5px solid #edf2f7 !important;
+    background-color: #ffffff !important;
+    padding: 1.25rem 1.15rem !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03) !important;
+    margin-bottom: 0.85rem !important;
+    transition: all 0.25s ease-out !important;
+}}
+div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
+    border-color: {current_theme['primary']} !important;
+    box-shadow: 0 8px 24px {current_theme['glow']} !important;
+}}
+
+/* 3. 活潑靈動膠囊分頁導航 (Segmented Pill Tabs) */
 div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
-    background-color: #f1f5f9 !important;
-    padding: 4px !important;
-    border-radius: 12px !important;
-    gap: 4px !important;
-    border: 1px solid #e2e8f0 !important;
+    background-color: #edf2f7 !important;
+    padding: 5px !important;
+    border-radius: 16px !important;
+    gap: 6px !important;
+    border: none !important;
+    margin-bottom: 0.75rem !important;
 }}
 div[data-testid="stTabs"] button[data-testid="stTab"] {{
-    border-radius: 9px !important;
+    border-radius: 12px !important;
     border: none !important;
-    padding: 8px 18px !important;
-    font-size: 0.92rem !important;
-    font-weight: 600 !important;
+    padding: 10px 14px !important;
+    font-size: 0.96rem !important;
+    font-weight: 700 !important;
     color: #64748b !important;
     background: transparent !important;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}}
-div[data-testid="stTabs"] button[data-testid="stTab"]:hover {{
-    color: {current_theme['primary']} !important;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    flex: 1 1 0px !important;
+    text-align: center !important;
 }}
 div[data-testid="stTabs"] button[data-testid="stTab"][aria-selected="true"] {{
     background-color: #ffffff !important;
     color: {current_theme['primary']} !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07), 0 1px 1px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08) !important;
+    transform: scale(1.02);
 }}
 div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
     display: none !important;
 }}
 
-/* 4. 現代微景深卡片 */
-div[data-testid="stVerticalBlockBorderWrapper"] {{
-    border-radius: 14px !important;
-    border: 1px solid #eef2f6 !important;
-    background-color: #ffffff !important;
-    padding: 1.1rem !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
-    transition: all 0.2s ease !important;
-}}
-div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
-    border-color: {current_theme['tag_border']} !important;
-    box-shadow: 0 6px 18px {current_theme['light_glow']} !important;
-}}
-
-/* 5. 數據指標卡 */
+/* 4. 氣泡數字看板 (Big Bubble Metrics) */
 div[data-testid="stMetric"] {{
-    background: #ffffff !important;
-    border: 1px solid #eef2f6 !important;
-    border-radius: 13px !important;
-    padding: 12px 16px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+    background: {current_theme['card_bg']} !important;
+    border: 1.5px solid #edf2f7 !important;
+    border-radius: 16px !important;
+    padding: 14px 14px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
     position: relative !important;
     overflow: hidden !important;
 }}
@@ -161,8 +160,8 @@ div[data-testid="stMetric"]::before {{
     content: "";
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: 3.5px;
-    background-color: {current_theme['primary']};
+    height: 4px;
+    background: {current_theme['gradient']};
 }}
 div[data-testid="stMetricLabel"] p {{
     font-size: 0.82rem !important;
@@ -170,53 +169,62 @@ div[data-testid="stMetricLabel"] p {{
     font-weight: 600 !important;
 }}
 div[data-testid="stMetricValue"] {{
-    font-size: clamp(1.35rem, 2.3vw, 1.7rem) !important;
-    font-weight: 700 !important;
+    font-size: clamp(1.35rem, 5vw, 1.85rem) !important;
+    font-weight: 800 !important;
     color: #0f172a !important;
+    letter-spacing: -0.02em !important;
 }}
 
-/* 6. 按鈕系統 */
+/* 5. 手機觸控高友善大按鈕 (Large Action Buttons) */
 html body button[data-testid*="primary"],
 html body button[data-testid="baseButton-primary"],
 html body button[kind="primary"],
 html body .stButton > button[kind="primary"],
 html body div[data-testid="stFormSubmitButton"] > button {{
-    background-color: {current_theme['primary']} !important;
+    background: {current_theme['gradient']} !important;
     border: none !important;
     color: #ffffff !important;
-    border-radius: 9px !important;
-    font-weight: 600 !important;
-    font-size: 0.92rem !important;
-    min-height: 40px !important;
-    box-shadow: 0 2px 5px {current_theme['light_glow']} !important;
-    transition: all 0.18s ease !important;
-}}
-html body button[data-testid*="primary"]:hover,
-html body div[data-testid="stFormSubmitButton"] > button:hover {{
-    background-color: {current_theme['hover']} !important;
-    box-shadow: 0 4px 10px {current_theme['light_glow']} !important;
-    transform: translateY(-0.5px);
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    font-size: 1.02rem !important;
+    min-height: 48px !important;
+    box-shadow: 0 4px 14px {current_theme['glow']} !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    letter-spacing: 0.2px !important;
 }}
 html body button[data-testid*="primary"]:active,
 html body div[data-testid="stFormSubmitButton"] > button:active {{
-    transform: scale(0.99);
+    transform: scale(0.96) !important;
 }}
 
 html body button[data-testid*="secondary"],
 html body button[data-testid="baseButton-secondary"] {{
-    border-radius: 9px !important;
-    border: 1px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    border: 1.5px solid #e2e8f0 !important;
     background: #ffffff !important;
-    color: #475569 !important;
-    font-size: 0.9rem !important;
-    min-height: 38px !important;
+    color: #334155 !important;
+    font-size: 0.94rem !important;
+    font-weight: 600 !important;
+    min-height: 42px !important;
 }}
-html body button[data-testid*="secondary"]:hover {{
-    border-color: #94a3b8 !important;
-    background: #f8fafc !important;
+html body button[data-testid*="secondary"]:active {{
+    transform: scale(0.97) !important;
 }}
 
-/* 7. 分攤角色標籤高辨識度 */
+/* 6. 輸入框加大與圓潤輪廓 */
+input[type="text"], input[type="password"], input[type="number"] {{
+    border-radius: 12px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    min-height: 44px !important;
+    font-size: 1rem !important;
+    padding: 8px 12px !important;
+}}
+input:focus {{
+    border-color: {current_theme['primary']} !important;
+    box-shadow: 0 0 0 3px {current_theme['glow']} !important;
+}}
+
+/* 7. 分攤角色標籤立體氣泡 */
 div[data-testid="stMultiSelect"] {{
     --primary-color: {current_theme['tag_bg']} !important;
 }}
@@ -224,19 +232,16 @@ html body div[data-testid="stMultiSelect"] [data-baseweb="tag"],
 html body div[data-testid="stMultiSelect"] span:has(svg) {{
     background-color: {current_theme['tag_bg']} !important;
     border: 1.5px solid {current_theme['tag_border']} !important;
-    border-radius: 7px !important;
-    padding: 3px 9px !important;
+    border-radius: 9px !important;
+    padding: 4px 10px !important;
 }}
-html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] span,
-html body div[data-testid="stMultiSelect"] span:has(svg) span {{
+html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] span {{
     color: {current_theme['tag_text']} !important;
-    font-weight: 700 !important;
-    font-size: 0.92rem !important;
+    font-weight: 800 !important;
+    font-size: 0.94rem !important;
 }}
-html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] svg,
-html body div[data-testid="stMultiSelect"] span:has(svg) svg path {{
+html body div[data-testid="stMultiSelect"] [data-baseweb="tag"] svg {{
     fill: {current_theme['tag_text']} !important;
-    color: {current_theme['tag_text']} !important;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -305,7 +310,7 @@ def get_current_base_url():
         pass
     return "https://travel-expense-33.streamlit.app"
 
-# ==================== 資料庫高效操作函式 ====================
+# ==================== 資料庫操作函式 ====================
 def get_user_by_email(email):
     try:
         res = supabase.table("app_users").select("*").eq("email", email.strip().lower()).execute()
@@ -376,7 +381,6 @@ def get_personal_categories(book_code, r_type):
     except Exception:
         return []
 
-# 【效能核心優化】即時基準匯率 + 極速快取（絕不拖慢主網頁載入）
 DEFAULT_RATES = {
     "USD": {"name": "美金", "cash_sell": 32.50},
     "JPY": {"name": "日幣", "cash_sell": 0.2150},
@@ -443,21 +447,22 @@ elif url_book and st.session_state["current_code"] != url_book and st.session_st
 
 
 # ==============================================================================
-# 第一層：身分認證（未登入 且 未透過免登入連結進入）
+# 第一層：身分認證（大塊卡片觸控引導）
 # ==============================================================================
 if st.session_state["current_code"] is None and st.session_state["auth_user"] is None:
-    st.markdown("<h2 style='text-align: center; margin-bottom: 0.3rem; font-weight: 800;'>📒 個人/共同分帳記事簿</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #64748b; margin-bottom: 1.8rem; font-size: 0.95rem;'>點擊好友專屬連結免登入直達；管理私密帳本或發起旅程請由此登入</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; margin-bottom: 0.2rem; font-weight: 800; font-size: 1.7rem;'>📒 個人/共同分帳記事簿</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748b; margin-bottom: 1.5rem; font-size: 0.95rem;'>點擊好友專屬連結直達記帳；管理帳本請由此登入</p>", unsafe_allow_html=True)
 
     with st.container(border=True):
-        tab_login, tab_signup = st.tabs(["🔑 會員登入 / 帳本管理", "✨ 免費註冊新帳號"])
+        tab_login, tab_signup = st.tabs(["🔑 會員登入", "✨ 免費註冊"])
 
         with tab_login:
             with st.form("login_form"):
                 l_email = st.text_input("電子信箱 (Email)", placeholder="name@example.com").strip().lower()
                 l_pwd = st.text_input("密碼", type="password", placeholder="輸入登入密碼")
                 
-                if st.form_submit_button("立即登入", type="primary", use_container_width=True):
+                st.write("")
+                if st.form_submit_button("🚀 立即登入", type="primary", use_container_width=True):
                     if not l_email or not l_pwd:
                         st.toast("❌ 請填寫 Email 與密碼！")
                     else:
@@ -477,7 +482,8 @@ if st.session_state["current_code"] is None and st.session_state["auth_user"] is
                 s_email = st.text_input("電子信箱 (Email)", placeholder="name@example.com").strip().lower()
                 s_pwd = st.text_input("設定密碼", type="password", placeholder="建議 6 位以上英數字")
                 
-                if st.form_submit_button("確認註冊並登入", type="primary", use_container_width=True):
+                st.write("")
+                if st.form_submit_button("✨ 確認註冊並進入", type="primary", use_container_width=True):
                     clean_name = re.sub(r'[,，]', '', s_name.strip())
                     clean_email = s_email.strip()
                     if not clean_name:
@@ -498,13 +504,14 @@ if st.session_state["current_code"] is None and st.session_state["auth_user"] is
                         st.toast(f"🎉 註冊成功！歡迎使用，{clean_name}！")
                         st.rerun()
 
+    # 快捷通關大卡片
     with st.container(border=True):
-        st.markdown("##### 🚀 手邊有好友的邀請代號？（免登入直接進入）")
-        c_quick1, c_quick2 = st.columns([3, 1])
+        st.markdown("##### ⚡ 手邊有 7 碼邀請碼？（免登入直接進入）")
+        c_quick1, c_quick2 = st.columns([2.5, 1.2])
         with c_quick1:
-            quick_code_in = st.text_input("輸入 7 碼邀請碼", placeholder="例如：TRIP888", label_visibility="collapsed").strip().upper()
+            quick_code_in = st.text_input("邀請代碼", placeholder="例如：TRIP888", label_visibility="collapsed").strip().upper()
         with c_quick2:
-            if st.button("直接進入", type="secondary", use_container_width=True):
+            if st.button("🚀 秒進行程", type="secondary", use_container_width=True):
                 if quick_code_in and get_trip_info(quick_code_in):
                     st.query_params["trip"] = quick_code_in
                     st.rerun()
@@ -515,27 +522,26 @@ if st.session_state["current_code"] is None and st.session_state["auth_user"] is
 
 
 # ==============================================================================
-# 第二層：主揪 / 會員「個人帳本與行程總覽大廳」
+# 第二層：主揪 / 會員「個人帳本與行程大廳」（大卡片格狀式設計）
 # ==============================================================================
 if st.session_state["current_code"] is None and st.session_state["auth_user"] is not None:
     current_user = st.session_state["auth_user"]
     user_email = current_user["email"]
     user_name = current_user["name"]
 
-    col_u1, col_u2 = st.columns([4, 1.2])
+    col_u1, col_u2 = st.columns([3.5, 1.5])
     with col_u1:
         st.markdown(f"### 👋 哈囉，{user_name}！")
-        st.caption(f"📧 帳號：`{user_email}` ｜ 您的所有個人與共同帳本均在此自動同步")
+        st.caption(f"帳號：`{user_email}` ｜ 雲端即時連線中")
     with col_u2:
         st.write("")
-        if st.button("🚪 登出帳號", use_container_width=True):
+        if st.button("🚪 登出", use_container_width=True):
             st.session_state["auth_user"] = None
             st.session_state["current_book_type"] = None
             st.session_state["current_code"] = None
             st.session_state["confirm_del_p_active"] = False
             st.session_state["confirm_del_group_active"] = False
             st.query_params.clear()
-            st.toast("👋 已安全登出！")
             st.rerun()
 
     st.divider()
@@ -544,169 +550,166 @@ if st.session_state["current_code"] is None and st.session_state["auth_user"] is
     personal_books = [b for b in user_saved_books if b["book_type"] == "personal"]
     group_books = [b for b in user_saved_books if b["book_type"] == "group"]
 
-    col_lobby_p, col_lobby_g = st.columns(2)
-
-    # 個人帳本
-    with col_lobby_p:
-        with st.container(border=True):
-            st.markdown("#### 👤 我的個人帳本")
-            st.caption("專屬的日常收支管家，無其他人分攤。")
-            
-            if personal_books:
-                for b in personal_books:
+    # 兩大重點區塊垂直展開（手機極佳視野）
+    # 區塊 1：個人帳本
+    with st.container(border=True):
+        st.markdown("#### 👤 我的個人獨立帳本")
+        st.caption("專屬於您的日常私密收支，無其他人分攤。")
+        
+        if personal_books:
+            for b in personal_books:
+                with st.container(border=True):
                     c_bname, c_bact = st.columns([3, 1.2])
                     with c_bname:
                         st.markdown(f"**📖 {b['book_name']}**")
                         st.caption(f"代碼：`{b['book_code']}`")
                     with c_bact:
-                        if st.button("開啟", key=f"open_p_{b['book_code']}", use_container_width=True, type="primary"):
+                        if st.button("開啟 ➔", key=f"open_p_{b['book_code']}", use_container_width=True, type="primary"):
                             st.session_state["current_book_type"] = "personal"
                             st.session_state["current_code"] = b["book_code"]
                             st.query_params["book"] = b["book_code"]
                             st.rerun()
-                    st.markdown("<hr style='margin: 6px 0; border: none; border-top: 1px dashed #e2e8f0;'>", unsafe_allow_html=True)
-            else:
-                st.info("尚無個人帳本，點擊下方立即建立！")
+        else:
+            st.info("尚無個人帳本，請點下方建立第一本！")
 
-            c_p_op1, c_p_op2 = st.columns(2)
-            with c_p_op1:
-                with st.expander("➕ 建立新個人帳本"):
-                    with st.form("create_new_personal_book"):
-                        nb_name = st.text_input("記事本名稱", placeholder="例如：2026日常開銷")
-                        if st.form_submit_button("確認建立", type="primary", use_container_width=True):
-                            c_nb_name = nb_name.strip()
-                            if not c_nb_name:
-                                st.toast("❌ 請填寫帳本名稱！")
-                            else:
-                                nb_code = generate_code(prefix="P")
-                                supabase.table("trips").insert({
-                                    "trip_code": nb_code,
-                                    "trip_name": c_nb_name,
-                                    "admin_pin": "0000"
-                                }).execute()
-                                bind_book_to_user(user_email, "personal", nb_code, c_nb_name)
-                                st.session_state["current_book_type"] = "personal"
-                                st.session_state["current_code"] = nb_code
-                                st.query_params["book"] = nb_code
-                                st.toast(f"🎉 成功建立「{c_nb_name}」！")
-                                st.rerun()
-
-            with c_p_op2:
-                if personal_books:
-                    with st.expander("🛠️ 管理個人帳本"):
-                        target_p_mng = st.selectbox(
-                            "選取欲管理的帳本：",
-                            options=[b["book_code"] for b in personal_books],
-                            format_func=lambda x: [b["book_name"] for b in personal_books if b["book_code"]==x][0],
-                            key="lobby_p_mng_sel"
-                        )
-                        curr_b_obj = [b for b in personal_books if b["book_code"]==target_p_mng][0]
-                        with st.form(f"rename_p_form_{target_p_mng}"):
-                            new_bname_input = st.text_input("修改名稱", value=curr_b_obj["book_name"])
-                            if st.form_submit_button("💾 儲存新名稱", type="primary", use_container_width=True):
-                                if new_bname_input.strip():
-                                    supabase.table("trips").update({"trip_name": new_bname_input.strip()}).eq("trip_code", target_p_mng).execute()
-                                    supabase.table("user_books").update({"book_name": new_bname_input.strip()}).eq("book_code", target_p_mng).execute()
-                                    st.toast("✏️ 帳本名稱已更新！")
-                                    st.rerun()
-
-                        if st.button("🗑️ 刪除此帳本", key=f"lobby_del_p_{target_p_mng}", type="secondary", use_container_width=True):
-                            supabase.table("personal_records").delete().eq("book_code", target_p_mng).execute()
-                            supabase.table("personal_categories").delete().eq("book_code", target_p_mng).execute()
-                            supabase.table("trips").delete().eq("trip_code", target_p_mng).execute()
-                            supabase.table("user_books").delete().eq("book_code", target_p_mng).execute()
-                            st.toast("🗑️ 已成功刪除該個人帳本！")
+        c_p_op1, c_p_op2 = st.columns(2)
+        with c_p_op1:
+            with st.expander("➕ 建立新個人帳本"):
+                with st.form("create_new_personal_book"):
+                    nb_name = st.text_input("記事本名稱", placeholder="例如：2026日常開銷")
+                    if st.form_submit_button("確認建立", type="primary", use_container_width=True):
+                        c_nb_name = nb_name.strip()
+                        if not c_nb_name:
+                            st.toast("❌ 請填寫帳本名稱！")
+                        else:
+                            nb_code = generate_code(prefix="P")
+                            supabase.table("trips").insert({
+                                "trip_code": nb_code,
+                                "trip_name": c_nb_name,
+                                "admin_pin": "0000"
+                            }).execute()
+                            bind_book_to_user(user_email, "personal", nb_code, c_nb_name)
+                            st.session_state["current_book_type"] = "personal"
+                            st.session_state["current_code"] = nb_code
+                            st.query_params["book"] = nb_code
+                            st.toast(f"🎉 成功建立「{c_nb_name}」！")
                             st.rerun()
 
-    # 共同旅遊分帳
-    with col_lobby_g:
-        with st.container(border=True):
-            st.markdown("#### 👥 我的共同分帳行程")
-            st.caption("出遊記帳、即時結算還款與直接分享網址。")
-            
-            if group_books:
-                for b in group_books:
+        with c_p_op2:
+            if personal_books:
+                with st.expander("🛠️ 管理個人帳本"):
+                    target_p_mng = st.selectbox(
+                        "選取欲管理的帳本：",
+                        options=[b["book_code"] for b in personal_books],
+                        format_func=lambda x: [b["book_name"] for b in personal_books if b["book_code"]==x][0],
+                        key="lobby_p_mng_sel"
+                    )
+                    curr_b_obj = [b for b in personal_books if b["book_code"]==target_p_mng][0]
+                    with st.form(f"rename_p_form_{target_p_mng}"):
+                        new_bname_input = st.text_input("修改名稱", value=curr_b_obj["book_name"])
+                        if st.form_submit_button("💾 儲存新名稱", type="primary", use_container_width=True):
+                            if new_bname_input.strip():
+                                supabase.table("trips").update({"trip_name": new_bname_input.strip()}).eq("trip_code", target_p_mng).execute()
+                                supabase.table("user_books").update({"book_name": new_bname_input.strip()}).eq("book_code", target_p_mng).execute()
+                                st.toast("✏️ 帳本名稱已更新！")
+                                st.rerun()
+
+                    if st.button("🗑️ 刪除此帳本", key=f"lobby_del_p_{target_p_mng}", type="secondary", use_container_width=True):
+                        supabase.table("personal_records").delete().eq("book_code", target_p_mng).execute()
+                        supabase.table("personal_categories").delete().eq("book_code", target_p_mng).execute()
+                        supabase.table("trips").delete().eq("trip_code", target_p_mng).execute()
+                        supabase.table("user_books").delete().eq("book_code", target_p_mng).execute()
+                        st.toast("🗑️ 已成功刪除該個人帳本！")
+                        st.rerun()
+
+    # 區塊 2：共同分帳行程
+    with st.container(border=True):
+        st.markdown("#### 👥 我的共同分帳行程")
+        st.caption("出遊記帳、即時結算還款與直接分享網址。")
+        
+        if group_books:
+            for b in group_books:
+                with st.container(border=True):
                     c_gname, c_gact = st.columns([3, 1.2])
                     with c_gname:
                         st.markdown(f"**✈️ {b['book_name']}**")
                         st.caption(f"邀請碼：`{b['book_code']}`")
                     with c_gact:
-                        if st.button("進入", key=f"open_g_{b['book_code']}", use_container_width=True, type="primary"):
+                        if st.button("進入 ➔", key=f"open_g_{b['book_code']}", use_container_width=True, type="primary"):
                             st.session_state["current_book_type"] = "group"
                             st.session_state["current_code"] = b["book_code"]
                             st.query_params["trip"] = b["book_code"]
                             st.rerun()
-                    st.markdown("<hr style='margin: 6px 0; border: none; border-top: 1px dashed #e2e8f0;'>", unsafe_allow_html=True)
-            else:
-                st.info("尚無共同分帳，可發起新旅程！")
+        else:
+            st.info("尚無共同分帳，可發起新旅程！")
 
-            c_g_op1, c_g_op2 = st.columns(2)
-            with c_g_op1:
-                with st.expander("➕ 發起新旅程"):
-                    with st.form("create_new_group_trip"):
-                        ng_name = st.text_input("旅程名稱", placeholder="例如：沖繩五天四夜")
-                        ng_pin = st.text_input("管理密碼 (4~6位)", type="password", max_chars=6)
-                        if st.form_submit_button("建立行程", type="primary", use_container_width=True):
-                            c_ng_name = ng_name.strip()
-                            if not c_ng_name:
-                                st.toast("❌ 請填寫旅程名稱！")
-                            elif not re.fullmatch(r"^\d{4,6}$", ng_pin.strip()):
-                                st.toast("❌ 密碼需為 4 ~ 6 位純數字！")
-                            else:
-                                ng_code = generate_code()
-                                supabase.table("trips").insert({
-                                    "trip_code": ng_code,
-                                    "trip_name": c_ng_name,
-                                    "admin_pin": ng_pin.strip()
-                                }).execute()
-                                supabase.table("members").insert({
-                                    "trip_code": ng_code,
-                                    "name": user_name
-                                }).execute()
-                                bind_book_to_user(user_email, "group", ng_code, c_ng_name)
-                                log_activity(ng_code, "建立行程", f"{user_name} 建立了「{c_ng_name}」")
-                                st.session_state["current_book_type"] = "group"
-                                st.session_state["current_code"] = ng_code
-                                st.query_params["trip"] = ng_code
-                                st.toast(f"🎉 成功建立！邀請碼：{ng_code}")
+        c_g_op1, c_g_op2 = st.columns(2)
+        with c_g_op1:
+            with st.expander("➕ 發起新旅程"):
+                with st.form("create_new_group_trip"):
+                    ng_name = st.text_input("旅程名稱", placeholder="例如：沖繩五天四夜")
+                    ng_pin = st.text_input("管理密碼 (4~6位)", type="password", max_chars=6)
+                    if st.form_submit_button("建立行程", type="primary", use_container_width=True):
+                        c_ng_name = ng_name.strip()
+                        if not c_ng_name:
+                            st.toast("❌ 請填寫旅程名稱！")
+                        elif not re.fullmatch(r"^\d{4,6}$", ng_pin.strip()):
+                            st.toast("❌ 密碼需為 4 ~ 6 位純數字！")
+                        else:
+                            ng_code = generate_code()
+                            supabase.table("trips").insert({
+                                "trip_code": ng_code,
+                                "trip_name": c_ng_name,
+                                "admin_pin": ng_pin.strip()
+                            }).execute()
+                            supabase.table("members").insert({
+                                "trip_code": ng_code,
+                                "name": user_name
+                            }).execute()
+                            bind_book_to_user(user_email, "group", ng_code, c_ng_name)
+                            log_activity(ng_code, "建立行程", f"{user_name} 建立了「{c_ng_name}」")
+                            st.session_state["current_book_type"] = "group"
+                            st.session_state["current_code"] = ng_code
+                            st.query_params["trip"] = ng_code
+                            st.toast(f"🎉 成功建立！邀請碼：{ng_code}")
+                            st.rerun()
+
+        with c_g_op2:
+            if group_books:
+                with st.expander("🛠️ 管理共同行程"):
+                    target_g_mng = st.selectbox(
+                        "選取欲管理的行程：",
+                        options=[b["book_code"] for b in group_books],
+                        format_func=lambda x: [b["book_name"] for b in group_books if b["book_code"]==x][0],
+                        key="lobby_g_mng_sel"
+                    )
+                    curr_g_obj = [b for b in group_books if b["book_code"]==target_g_mng][0]
+                    g_info = get_trip_info(target_g_mng)
+                    g_admin_pin = g_info.get("admin_pin", "") if g_info else ""
+
+                    with st.form(f"rename_g_form_{target_g_mng}"):
+                        new_gname_input = st.text_input("修改名稱", value=curr_g_obj["book_name"])
+                        if st.form_submit_button("💾 儲存新名稱", type="primary", use_container_width=True):
+                            if new_gname_input.strip():
+                                supabase.table("trips").update({"trip_name": new_gname_input.strip()}).eq("trip_code", target_g_mng).execute()
+                                supabase.table("user_books").update({"book_name": new_gname_input.strip()}).eq("book_code", target_g_mng).execute()
+                                st.toast("✏️ 行程名稱已更新！")
                                 st.rerun()
 
-            with c_g_op2:
-                if group_books:
-                    with st.expander("🛠️ 管理共同行程"):
-                        target_g_mng = st.selectbox(
-                            "選取欲管理的行程：",
-                            options=[b["book_code"] for b in group_books],
-                            format_func=lambda x: [b["book_name"] for b in group_books if b["book_code"]==x][0],
-                            key="lobby_g_mng_sel"
-                        )
-                        curr_g_obj = [b for b in group_books if b["book_code"]==target_g_mng][0]
-                        g_info = get_trip_info(target_g_mng)
-                        g_admin_pin = g_info.get("admin_pin", "") if g_info else ""
-
-                        with st.form(f"rename_g_form_{target_g_mng}"):
-                            new_gname_input = st.text_input("修改名稱", value=curr_g_obj["book_name"])
-                            if st.form_submit_button("💾 儲存新名稱", type="primary", use_container_width=True):
-                                if new_gname_input.strip():
-                                    supabase.table("trips").update({"trip_name": new_gname_input.strip()}).eq("trip_code", target_g_mng).execute()
-                                    supabase.table("user_books").update({"book_name": new_gname_input.strip()}).eq("book_code", target_g_mng).execute()
-                                    st.toast("✏️ 行程名稱已更新！")
-                                    st.rerun()
-
-                        del_g_pin_input = st.text_input("管理員密碼 (4~6位)", type="password", key=f"del_g_pin_{target_g_mng}", placeholder="4~6位密碼")
-                        if st.button("🗑️ 驗證並永久刪除此行程", key=f"lobby_del_g_{target_g_mng}", type="secondary", use_container_width=True):
-                            if not del_g_pin_input.strip():
-                                st.toast("❌ 請輸入管理員密碼！")
-                            elif g_admin_pin and del_g_pin_input.strip() != g_admin_pin:
-                                st.toast("❌ 管理員密碼錯誤，拒絕刪除！")
-                            else:
-                                supabase.table("expenses").delete().eq("trip_code", target_g_mng).execute()
-                                supabase.table("members").delete().eq("trip_code", target_g_mng).execute()
-                                supabase.table("activity_logs").delete().eq("trip_code", target_g_mng).execute()
-                                supabase.table("trips").delete().eq("trip_code", target_g_mng).execute()
-                                supabase.table("user_books").delete().eq("book_code", target_g_mng).execute()
-                                st.toast("🗑️ 已成功銷毀該共同行程帳本！")
-                                st.rerun()
+                    del_g_pin_input = st.text_input("管理員密碼", type="password", key=f"del_g_pin_{target_g_mng}", placeholder="4~6位密碼")
+                    if st.button("🗑️ 永久刪除此行程", key=f"lobby_del_g_{target_g_mng}", type="secondary", use_container_width=True):
+                        if not del_g_pin_input.strip():
+                            st.toast("❌ 請輸入管理員密碼！")
+                        elif g_admin_pin and del_g_pin_input.strip() != g_admin_pin:
+                            st.toast("❌ 管理員密碼錯誤，拒絕刪除！")
+                        else:
+                            supabase.table("expenses").delete().eq("trip_code", target_g_mng).execute()
+                            supabase.table("members").delete().eq("trip_code", target_g_mng).execute()
+                            supabase.table("activity_logs").delete().eq("trip_code", target_g_mng).execute()
+                            supabase.table("trips").delete().eq("trip_code", target_g_mng).execute()
+                            supabase.table("user_books").delete().eq("book_code", target_g_mng).execute()
+                            st.toast("🗑️ 已成功銷毀該共同行程帳本！")
+                            st.rerun()
 
     st.stop()
 
@@ -729,25 +732,27 @@ if st.session_state["current_book_type"] == "personal":
     total_expense = sum(int(round(float(r["amount"]))) for r in p_records if r["record_type"] == "expense")
     net_surplus = total_income - total_expense
 
-    col_pb1, col_pb2 = st.columns([3.8, 1.5])
-    with col_pb1:
-        st.markdown(f"### 📖 {book_name}")
-        st.caption(f"👤 擁有者：`{u_display}` ｜ 帳本代碼：`{book_code}`")
-    with col_pb2:
-        col_pbtn1, col_pbtn2 = st.columns(2)
-        with col_pbtn1:
-            if st.button("🔄", help="重新載入", use_container_width=True):
-                st.toast("🔄 資料已更新！")
-                st.rerun()
-        with col_pbtn2:
-            if st.button("⬅️ 總覽", help="返回我的帳本大廳", use_container_width=True):
-                st.session_state["current_code"] = None
-                st.session_state["current_book_type"] = None
-                st.session_state["confirm_del_p_active"] = False
-                st.session_state["confirm_del_group_active"] = False
-                st.query_params.clear()
-                st.rerun()
+    # 頂部行動專屬 Banner
+    with st.container(border=True):
+        col_pb1, col_pb2 = st.columns([3.5, 1.5])
+        with col_pb1:
+            st.markdown(f"### 📖 {book_name}")
+            st.caption(f"👤 `{u_display}` ｜ 代碼：`{book_code}`")
+        with col_pb2:
+            c_p1, c_p2 = st.columns(2)
+            with c_p1:
+                if st.button("🔄", help="重新載入", use_container_width=True):
+                    st.toast("🔄 資料已更新！")
+                    st.rerun()
+            with c_p2:
+                if st.button("⬅️", help="返回我的帳本大廳", use_container_width=True):
+                    st.session_state["current_code"] = None
+                    st.session_state["current_book_type"] = None
+                    st.session_state["confirm_del_p_active"] = False
+                    st.query_params.clear()
+                    st.rerun()
 
+    # 氣泡大數據看板
     c_inc, c_exp, c_sur = st.columns(3)
     with c_inc:
         st.metric("💰 總收入", f"${total_income:,}")
@@ -763,7 +768,7 @@ if st.session_state["current_book_type"] == "personal":
 
     st.write("")
 
-    # 側邊欄：純淨個人設定 (無台銀匯率)
+    # 側邊欄設定
     with st.sidebar:
         st.markdown("### ⚙️ 個人帳本設定")
         with st.container(border=True):
@@ -787,7 +792,7 @@ if st.session_state["current_book_type"] == "personal":
 
             with st.expander("🗑️ 刪除此個人帳本"):
                 if st.session_state["confirm_del_p_active"]:
-                    st.error("⚠️ 確定要永久銷毀此個人帳本與所有收支紀錄嗎？")
+                    st.error("⚠️ 確定要永久銷毀此個人帳本嗎？")
                     c_pdel_y, c_pdel_n = st.columns(2)
                     with c_pdel_y:
                         if st.button("🚨 確認刪除", type="primary", use_container_width=True):
@@ -820,23 +825,22 @@ if st.session_state["current_book_type"] == "personal":
 
     p_tab1, p_tab2 = st.tabs(["💸 支出記帳", "💰 收入記帳"])
 
-    # 支出
+    # 支出記帳
     with p_tab1:
         with st.container(border=True):
             st.markdown("##### ➕ 新增支出消費")
             with st.form("add_personal_expense_form", clear_on_submit=True):
-                r1_c1, r1_c2 = st.columns([3, 2])
-                with r1_c1:
-                    exp_item = st.text_input("消費名稱", placeholder="例如：午餐便當、高鐵票")
-                with r1_c2:
-                    exp_amt = st.number_input("金額 (NTD)", min_value=1, step=50, format="%d")
+                exp_item = st.text_input("消費名稱", placeholder="例如：午餐便當、高鐵票")
+                exp_amt = st.number_input("金額 (NTD)", min_value=1, step=50, format="%d")
+
                 r2_c1, r2_c2 = st.columns(2)
                 with r2_c1:
                     exp_cat = st.selectbox("支出類別", options=all_exp_cats)
                 with r2_c2:
                     exp_date = st.date_input("消費日期", value=date.today())
 
-                if st.form_submit_button("記下一筆支出", type="primary", use_container_width=True):
+                st.write("")
+                if st.form_submit_button("💸 記下這筆支出", type="primary", use_container_width=True):
                     if not exp_item.strip():
                         st.toast("❌ 請填寫消費名稱！")
                     else:
@@ -852,12 +856,12 @@ if st.session_state["current_book_type"] == "personal":
                         st.rerun()
 
         with st.expander("🏷️ 管理支出類別 (新增或刪除自訂類別)"):
-            c_add_ec1, c_add_ec2 = st.columns([3, 1])
+            c_add_ec1, c_add_ec2 = st.columns([2.5, 1.2])
             with c_add_ec1:
-                new_ecat = st.text_input("新增自訂支出類別", placeholder="例如：寵物、健身", key="new_ecat_input")
+                new_ecat = st.text_input("新增自訂類別", placeholder="例如：寵物、健身", key="new_ecat_input")
             with c_add_ec2:
                 st.write("")
-                if st.button("➕ 新增類別", key="btn_add_ecat", use_container_width=True):
+                if st.button("➕ 新增", key="btn_add_ecat", use_container_width=True):
                     clean_ec = new_ecat.strip()
                     if clean_ec and clean_ec not in all_exp_cats:
                         supabase.table("personal_categories").insert({"book_code": book_code, "record_type": "expense", "name": clean_ec}).execute()
@@ -866,7 +870,7 @@ if st.session_state["current_book_type"] == "personal":
 
             if custom_exp_cats:
                 del_ecat_target = st.selectbox("選擇要刪除的類別：", options=custom_exp_cats, key="sel_del_ecat")
-                if st.button("🗑️ 刪除該自訂類別", key="btn_del_ecat"):
+                if st.button("🗑️ 刪除類別", key="btn_del_ecat"):
                     supabase.table("personal_categories").delete().eq("book_code", book_code).eq("record_type", "expense").eq("name", del_ecat_target).execute()
                     st.toast(f"🗑️ 已刪除類別：{del_ecat_target}")
                     st.rerun()
@@ -875,16 +879,18 @@ if st.session_state["current_book_type"] == "personal":
         with st.container(border=True):
             st.markdown("##### 📋 支出明細清單")
             if exp_list:
-                st.dataframe(pd.DataFrame([{
-                    "日期": str(r.get("record_date", "")),
-                    "類別": r["category"],
-                    "項目": r["item"],
-                    "金額": f"${int(round(float(r['amount']))):,}"
-                } for r in exp_list]), use_container_width=True, hide_index=True)
+                for r in exp_list[:25]:
+                    with st.container(border=True):
+                        c_ex1, c_ex2 = st.columns([3, 1.5])
+                        with c_ex1:
+                            st.markdown(f"**{r['item']}**")
+                            st.caption(f"🏷️ {r['category']} ｜ 📅 {r.get('record_date')}")
+                        with c_ex2:
+                            st.markdown(f"<h4 style='color:#e11d48; margin:0; text-align:right;'>-${int(round(float(r['amount']))):,}</h4>", unsafe_allow_html=True)
 
-                with st.expander("🛠️ 管理或修改支出項目"):
+                with st.expander("🛠️ 管理或修改特定支出"):
                     target_pe_id = st.selectbox(
-                        "選擇欲調整的支出：",
+                        "選擇支出項目：",
                         options=[r["id"] for r in exp_list],
                         format_func=lambda x: f"{[r['record_date'] for r in exp_list if r['id']==x][0]} - {[r['item'] for r in exp_list if r['id']==x][0]} (${int(round(float([r['amount'] for r in exp_list if r['id']==x][0]))):,})"
                     )
@@ -908,23 +914,22 @@ if st.session_state["current_book_type"] == "personal":
             else:
                 st.caption("尚無任何支出記錄。")
 
-    # 收入
+    # 收入記帳
     with p_tab2:
         with st.container(border=True):
             st.markdown("##### ➕ 新增收入項目")
             with st.form("add_personal_income_form", clear_on_submit=True):
-                r1_c1, r1_c2 = st.columns([3, 2])
-                with r1_c1:
-                    inc_item = st.text_input("收入名稱", placeholder="例如：薪水、獎金")
-                with r1_c2:
-                    inc_amt = st.number_input("金額 (NTD)", min_value=1, step=100, format="%d")
+                inc_item = st.text_input("收入名稱", placeholder="例如：薪水、獎金")
+                inc_amt = st.number_input("金額 (NTD)", min_value=1, step=100, format="%d")
+
                 r2_c1, r2_c2 = st.columns(2)
                 with r2_c1:
                     inc_cat = st.selectbox("收入類別", options=all_inc_cats)
                 with r2_c2:
                     inc_date = st.date_input("入帳日期", value=date.today())
 
-                if st.form_submit_button("記下一筆收入", type="primary", use_container_width=True):
+                st.write("")
+                if st.form_submit_button("💰 記下這筆收入", type="primary", use_container_width=True):
                     if not inc_item.strip():
                         st.toast("❌ 請填寫收入名稱！")
                     else:
@@ -940,12 +945,12 @@ if st.session_state["current_book_type"] == "personal":
                         st.rerun()
 
         with st.expander("🏷️ 管理收入類別 (新增或刪除自訂類別)"):
-            c_add_ic1, c_add_ic2 = st.columns([3, 1])
+            c_add_ic1, c_add_ic2 = st.columns([2.5, 1.2])
             with c_add_ic1:
-                new_icat = st.text_input("新增自訂收入類別", placeholder="例如：兼職、股利", key="new_icat_input")
+                new_icat = st.text_input("新增自訂類別", placeholder="例如：兼職、股利", key="new_icat_input")
             with c_add_ic2:
                 st.write("")
-                if st.button("➕ 新增類別", key="btn_add_icat", use_container_width=True):
+                if st.button("➕ 新增", key="btn_add_icat", use_container_width=True):
                     clean_ic = new_icat.strip()
                     if clean_ic and clean_ic not in all_inc_cats:
                         supabase.table("personal_categories").insert({"book_code": book_code, "record_type": "income", "name": clean_ic}).execute()
@@ -954,7 +959,7 @@ if st.session_state["current_book_type"] == "personal":
 
             if custom_inc_cats:
                 del_icat_target = st.selectbox("選擇要刪除的類別：", options=custom_inc_cats, key="sel_del_icat")
-                if st.button("🗑️ 刪除該自訂類別", key="btn_del_icat"):
+                if st.button("🗑️ 刪除類別", key="btn_del_icat"):
                     supabase.table("personal_categories").delete().eq("book_code", book_code).eq("record_type", "income").eq("name", del_icat_target).execute()
                     st.toast(f"🗑️ 已刪除類別：{del_icat_target}")
                     st.rerun()
@@ -963,16 +968,18 @@ if st.session_state["current_book_type"] == "personal":
         with st.container(border=True):
             st.markdown("##### 📋 收入明細清單")
             if inc_list:
-                st.dataframe(pd.DataFrame([{
-                    "日期": str(r.get("record_date", "")),
-                    "類別": r["category"],
-                    "項目": r["item"],
-                    "金額": f"${int(round(float(r['amount']))):,}"
-                } for r in inc_list]), use_container_width=True, hide_index=True)
+                for r in inc_list[:25]:
+                    with st.container(border=True):
+                        c_in1, c_in2 = st.columns([3, 1.5])
+                        with c_in1:
+                            st.markdown(f"**{r['item']}**")
+                            st.caption(f"🏷️ {r['category']} ｜ 📅 {r.get('record_date')}")
+                        with c_in2:
+                            st.markdown(f"<h4 style='color:#16a34a; margin:0; text-align:right;'>+${int(round(float(r['amount']))):,}</h4>", unsafe_allow_html=True)
 
-                with st.expander("🛠️ 管理或修改收入項目"):
+                with st.expander("🛠️ 管理或修改特定收入"):
                     target_pi_id = st.selectbox(
-                        "選擇欲調整的收入：",
+                        "選擇收入項目：",
                         options=[r["id"] for r in inc_list],
                         format_func=lambda x: f"{[r['record_date'] for r in inc_list if r['id']==x][0]} - {[r['item'] for r in inc_list if r['id']==x][0]} (${int(round(float([r['amount'] for r in inc_list if r['id']==x][0]))):,})"
                     )
@@ -1000,7 +1007,7 @@ if st.session_state["current_book_type"] == "personal":
 
 
 # ==============================================================================
-# 第三層 B：共同旅遊分帳主畫面 (支援免登入直達網址與極速架構)
+# 第三層 B：共同旅遊分帳主畫面 (全手機大卡片觸控體驗)
 # ==============================================================================
 trip_code = st.session_state["current_code"]
 trip_info = get_trip_info(trip_code)
@@ -1028,88 +1035,85 @@ logs = get_logs(trip_code)
 total_trip_expense = sum(int(round(float(e["amount"]))) for e in expenses)
 id_to_exp = {e["id"]: e for e in expenses}
 
-# 頂部導航
-col_h1, col_h2 = st.columns([3.5, 1.8])
-with col_h1:
-    st.markdown(f"### ✈️ {trip_name}")
-    st.caption(f"🔑 邀請碼：**`{trip_code}`** ｜ 目前操作者：`{active_operator_name if active_operator_name else '訪客'}` ｜ 30 秒自動同步")
-with col_h2:
-    col_btn1, col_btn2, col_btn3 = st.columns(3)
-    with col_btn1:
-        if st.button("🔄", help="手動更新", use_container_width=True):
-            st.toast("🔄 已同步最新資料")
-            st.rerun()
-    with col_btn2:
-        with st.popover("🔗", help="分享行程邀請連結", use_container_width=True):
-            st.markdown(f"**📤 分享【{trip_name}】**")
-            st.caption("同行好友點擊專屬連結即可**直接免登入進入**開始記帳：")
-            
-            base_url = get_current_base_url()
-            full_share_url = f"{base_url}/?trip={trip_code}"
+# 頂部導航大卡片
+with st.container(border=True):
+    col_h1, col_h2 = st.columns([3.5, 1.8])
+    with col_h1:
+        st.markdown(f"### ✈️ {trip_name}")
+        st.caption(f"🔑 `{trip_code}` ｜ 👤 `{active_operator_name if active_operator_name else '訪客'}` ｜ ⚡30秒同步")
+    with col_h2:
+        col_btn1, col_btn2, col_btn3 = st.columns(3)
+        with col_btn1:
+            if st.button("🔄", help="手動更新", use_container_width=True):
+                st.toast("🔄 已同步最新資料")
+                st.rerun()
+        with col_btn2:
+            with st.popover("🔗", help="分享行程邀請連結", use_container_width=True):
+                st.markdown(f"**📤 分享【{trip_name}】**")
+                st.caption("好友點擊即可**免登入直接進入**：")
+                
+                base_url = get_current_base_url()
+                full_share_url = f"{base_url}/?trip={trip_code}"
 
-            st.code(full_share_url, language="text")
+                st.code(full_share_url, language="text")
 
-            st.components.v1.html(f"""
-            <div style="display:flex; flex-direction:column; gap:6px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
-                <input type="text" id="shareUrlBox" value="{full_share_url}" readonly style="
-                    width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; background-color: #f8fafc; color: #334155; box-sizing: border-box;
-                " />
-                <button id="copyBtn" style="
-                    background-color: {current_theme['primary']}; color: white; border: none; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.2s;
-                ">📋 點擊一鍵複製直達網址</button>
-                <div id="copyNotice" style="font-size:12px; color:#16a34a; font-weight:600; display:none; text-align:center; margin-top:2px;">
-                    ✅ 專屬網址已複製至剪貼簿！
+                st.components.v1.html(f"""
+                <div style="display:flex; flex-direction:column; gap:6px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+                    <input type="text" id="shareUrlBox" value="{full_share_url}" readonly style="
+                        width: 100%; padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13px; background-color: #f8fafc; color: #334155; box-sizing: border-box;
+                    " />
+                    <button id="copyBtn" style="
+                        background: {current_theme['gradient']}; color: white; border: none; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%;
+                    ">📋 點擊一鍵複製直達網址</button>
+                    <div id="copyNotice" style="font-size:12px; color:#16a34a; font-weight:700; display:none; text-align:center; margin-top:2px;">
+                        ✅ 專屬網址已複製至剪貼簿！
+                    </div>
                 </div>
-            </div>
-            <script>
-                try {{
-                    if (window.parent && window.parent.location && window.parent.location.origin) {{
-                        const origin = window.parent.location.origin;
-                        const pathname = window.parent.location.pathname;
-                        document.getElementById('shareUrlBox').value = origin + pathname + '?trip={trip_code}';
-                    }}
-                }} catch(e) {{}}
+                <script>
+                    try {{
+                        if (window.parent && window.parent.location && window.parent.location.origin) {{
+                            const origin = window.parent.location.origin;
+                            const pathname = window.parent.location.pathname;
+                            document.getElementById('shareUrlBox').value = origin + pathname + '?trip={trip_code}';
+                        }}
+                    }} catch(e) {{}}
 
-                document.getElementById('copyBtn').addEventListener('click', function() {{
-                    const inputEl = document.getElementById('shareUrlBox');
-                    inputEl.select();
-                    inputEl.setSelectionRange(0, 99999);
-                    
-                    function showSuccess() {{
-                        const btn = document.getElementById('copyBtn');
-                        const notice = document.getElementById('copyNotice');
-                        btn.innerText = '✅ 複製成功！';
-                        btn.style.backgroundColor = '#16a34a';
-                        notice.style.display = 'block';
-                        setTimeout(() => {{
-                            btn.innerText = '📋 點擊一鍵複製直達網址';
-                            btn.style.backgroundColor = '{current_theme['primary']}';
-                            notice.style.display = 'none';
-                        }}, 2500);
-                    }}
-
-                    if (navigator.clipboard && window.isSecureContext) {{
-                        navigator.clipboard.writeText(inputEl.value).then(showSuccess).catch(function() {{
+                    document.getElementById('copyBtn').addEventListener('click', function() {{
+                        const inputEl = document.getElementById('shareUrlBox');
+                        inputEl.select();
+                        inputEl.setSelectionRange(0, 99999);
+                        function showSuccess() {{
+                            const btn = document.getElementById('copyBtn');
+                            const notice = document.getElementById('copyNotice');
+                            btn.innerText = '✅ 複製成功！';
+                            notice.style.display = 'block';
+                            setTimeout(() => {{
+                                btn.innerText = '📋 點擊一鍵複製直達網址';
+                                notice.style.display = 'none';
+                            }}, 2500);
+                        }}
+                        if (navigator.clipboard && window.isSecureContext) {{
+                            navigator.clipboard.writeText(inputEl.value).then(showSuccess).catch(function() {{
+                                try {{ document.execCommand('copy'); showSuccess(); }} catch(err) {{ alert('複製失敗，請手動選取網址！'); }}
+                            }});
+                        }} else {{
                             try {{ document.execCommand('copy'); showSuccess(); }} catch(err) {{ alert('複製失敗，請手動選取網址！'); }}
-                        }});
-                    }} else {{
-                        try {{ document.execCommand('copy'); showSuccess(); }} catch(err) {{ alert('複製失敗，請手動選取網址！'); }}
-                    }}
-                }});
-            </script>
-            """, height=115)
+                        }}
+                    }});
+                </script>
+                """, height=115)
 
-            st.caption(f"🔑 7 碼邀請代碼：`{trip_code}`")
+                st.caption(f"🔑 7 碼邀請碼：`{trip_code}`")
 
-    with col_btn3:
-        if st.button("⬅️ 總覽", help="返回我的帳本大廳", use_container_width=True):
-            st.session_state["current_code"] = None
-            st.session_state["current_book_type"] = None
-            st.session_state["confirm_del_group_active"] = False
-            st.query_params.clear()
-            st.rerun()
+        with col_btn3:
+            if st.button("⬅️", help="返回我的帳本大廳", use_container_width=True):
+                st.session_state["current_code"] = None
+                st.session_state["current_book_type"] = None
+                st.session_state["confirm_del_group_active"] = False
+                st.query_params.clear()
+                st.rerun()
 
-# 指標卡
+# 氣泡指標大卡片
 c_m1, c_m2, c_m3 = st.columns(3)
 avg_expense = int(round(total_trip_expense / len(members))) if members else 0
 with c_m1:
@@ -1179,7 +1183,7 @@ with st.sidebar:
                         st.toast(f"🗑️ 已刪除：{member_to_delete}")
                         st.rerun()
 
-    # 共同分帳匯率換算（延遲隨選快取，絕不卡慢）
+    # 共同分帳匯率換算
     with st.container(border=True):
         st.markdown("**💱 台灣銀行牌告匯率**")
         with st.expander("展開匯率計算機", expanded=False):
@@ -1240,7 +1244,7 @@ with st.sidebar:
                         st.session_state["confirm_del_group_active"] = True
                         st.rerun()
 
-# 共同分帳三頁籤
+# 共同分帳三膠囊分頁
 tab1, tab2, tab3 = st.tabs(["📝 新增消費", "👤 個人帳務", "📊 結算還款"])
 
 # Tab 1: 新增消費與分攤明細
@@ -1251,20 +1255,18 @@ with tab1:
             st.warning("請先在左側選單新增成員！")
         else:
             with st.form("add_expense_form", clear_on_submit=True):
-                c_item, c_amt = st.columns(2)
-                with c_item:
-                    item_name = st.text_input("項目名稱", placeholder="例如：晚餐、計程車、門票")
-                with c_amt:
-                    amount = st.number_input("金額 (NTD / 幣別)", min_value=1, step=50, format="%d")
+                item_name = st.text_input("項目名稱", placeholder="例如：第一天晚餐、計程車、門票")
+                amount = st.number_input("金額 (NTD / 結算幣別)", min_value=1, step=50, format="%d")
 
                 c_payer, c_split = st.columns(2)
                 with c_payer:
                     payer_def_idx = members.index(active_operator_name) if active_operator_name in members else 0
-                    paid_by = st.selectbox("誰先付錢？", options=members, index=payer_def_idx)
+                    paid_by = st.selectbox("誰先代墊全額？", options=members, index=payer_def_idx)
                 with c_split:
-                    split_with = st.multiselect("誰要分攤？", options=members, default=members)
+                    split_with = st.multiselect("這筆由誰分攤？", options=members, default=members)
 
-                if st.form_submit_button("記下一筆", type="primary", use_container_width=True):
+                st.write("")
+                if st.form_submit_button("💾 記下這筆消費", type="primary", use_container_width=True):
                     if not item_name.strip():
                         st.toast("❌ 請填寫消費項目！")
                     elif not split_with:
@@ -1286,16 +1288,18 @@ with tab1:
     shared_id_to_seq = {e["id"]: idx + 1 for idx, e in enumerate(sorted_shared)}
 
     with st.container(border=True):
-        st.markdown("##### 📋 分攤明細")
+        st.markdown("##### 📋 團體分攤明細清單")
         if shared_expenses:
-            st.dataframe(pd.DataFrame([{
-                "#": shared_id_to_seq[e["id"]],
-                "時間": format_time(e.get("created_at")),
-                "項目": e["item"],
-                "金額": f"${int(round(float(e['amount']))):,}",
-                "代墊人": e["paid_by"],
-                "分攤名單": e["split_members"]
-            } for e in shared_expenses]), use_container_width=True, hide_index=True)
+            # 手機端以大卡片呈現
+            for e in shared_expenses[:25]:
+                with st.container(border=True):
+                    c_h1, c_h2 = st.columns([3, 1.5])
+                    with c_h1:
+                        st.markdown(f"**#{shared_id_to_seq[e['id']]} {e['item']}**")
+                        st.caption(f"由 **{e['paid_by']}** 代墊 ｜ 📅 {format_time(e.get('created_at'))}")
+                        st.caption(f"分攤：{e['split_members']}")
+                    with c_h2:
+                        st.markdown(f"<h3 style='margin:0; text-align:right; color:{current_theme['primary']};'>${int(round(float(e['amount']))):,}</h3>", unsafe_allow_html=True)
 
             with st.expander("🛠️ 管理或修改帳目"):
                 target_id = st.selectbox(
@@ -1406,7 +1410,14 @@ with tab2:
                 for p in personal_list:
                     p["#"] = p_id_seq[p["raw_id"]]
 
-                st.dataframe(pd.DataFrame(personal_list)[["#", "時間", "項目", "自費金額"]], use_container_width=True, hide_index=True)
+                for p in personal_list:
+                    with st.container(border=True):
+                        c_pl1, c_pl2 = st.columns([3, 1.5])
+                        with c_pl1:
+                            st.markdown(f"**#{p['#']} {p['項目']}**")
+                            st.caption(f"📅 {p['時間']}")
+                        with c_pl2:
+                            st.markdown(f"<h4 style='color:#e11d48; margin:0; text-align:right;'>{p['自費金額']}</h4>", unsafe_allow_html=True)
 
                 with st.expander("🛠️ 管理自費項目"):
                     p_sel_id = st.selectbox(
@@ -1436,7 +1447,15 @@ with tab2:
         with st.container(border=True):
             st.markdown(f"##### 👥 分攤清單 ({selected_user})")
             if group_list:
-                st.dataframe(pd.DataFrame(group_list), use_container_width=True, hide_index=True)
+                for g in group_list[:25]:
+                    with st.container(border=True):
+                        c_gl1, c_gl2 = st.columns([3, 1.5])
+                        with c_gl1:
+                            st.markdown(f"**#{g['#']} {g['項目']}**")
+                            st.caption(f"代墊：{g['代墊人']} ｜ {g['人數']}分攤")
+                        with c_gl2:
+                            st.markdown(f"<h4 style='color:{current_theme['primary']}; margin:0; text-align:right;'>應負擔 {g['我的份額']}</h4>", unsafe_allow_html=True)
+                            st.caption(f"<div style='text-align:right;'>整筆 {g['總額']}</div>", unsafe_allow_html=True)
             else:
                 st.caption("尚無相關分攤明細。")
 
@@ -1457,60 +1476,65 @@ with tab3:
                 if sm in balances:
                     balances[sm] -= share
 
-        col_b_list, col_b_guide = st.columns([1, 1.2])
+        # 大卡片排版
+        with st.container(border=True):
+            st.markdown("##### 📋 每人結算淨額")
+            for k, v in balances.items():
+                with st.container(border=True):
+                    c_bk1, c_bk2 = st.columns([2.5, 2])
+                    with c_bk1:
+                        st.markdown(f"**👤 {k}**")
+                    with c_bk2:
+                        if v > 0:
+                            st.markdown(f"<h4 style='color:#16a34a; margin:0; text-align:right;'>🟢 應收回 +${v:,}</h4>", unsafe_allow_html=True)
+                        elif v < 0:
+                            st.markdown(f"<h4 style='color:#e11d48; margin:0; text-align:right;'>🔴 應支付 -${abs(v):,}</h4>", unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"<h4 style='color:#64748b; margin:0; text-align:right;'>⚖️ 結清 $0</h4>", unsafe_allow_html=True)
 
-        with col_b_list:
-            with st.container(border=True):
-                st.markdown("##### 📋 每人結算淨額")
-                st.dataframe(pd.DataFrame([{
-                    "成員": k,
-                    "狀態": f"🟢 應收回 +${v:,}" if v > 0 else (f"🔴 應支付 -${abs(v):,}" if v < 0 else "⚖️ 結清 $0")
-                } for k, v in balances.items()]), use_container_width=True, hide_index=True)
+        with st.container(border=True):
+            st.markdown("##### 💡 最簡轉帳還款指南")
+            debtors = []
+            creditors = []
+            for m, b in balances.items():
+                if b < 0:
+                    debtors.append([m, -b])
+                elif b > 0:
+                    creditors.append([m, b])
 
-        with col_b_guide:
-            with st.container(border=True):
-                st.markdown("##### 💡 最簡轉帳還款指南")
-                debtors = []
-                creditors = []
-                for m, b in balances.items():
-                    if b < 0:
-                        debtors.append([m, -b])
-                    elif b > 0:
-                        creditors.append([m, b])
+            settlements = []
+            line_messages = []
+            i, j = 0, 0
+            while i < len(debtors) and j < len(creditors):
+                deb_name, deb_amt = debtors[i]
+                cred_name, cred_amt = creditors[j]
+                trans_amt = min(deb_amt, cred_amt)
+                
+                if trans_amt >= 1:
+                    settlements.append(f"👉 **{deb_name}** 轉帳給 **{cred_name}**：`{trans_amt:,}` 元")
+                    line_messages.append(f"• {deb_name} ➔ {cred_name}：${trans_amt:,} 元")
+                
+                debtors[i][1] -= trans_amt
+                creditors[j][1] -= trans_amt
+                
+                if debtors[i][1] == 0:
+                    i += 1
+                if creditors[j][1] == 0:
+                    j += 1
 
-                settlements = []
-                line_messages = []
-                i, j = 0, 0
-                while i < len(debtors) and j < len(creditors):
-                    deb_name, deb_amt = debtors[i]
-                    cred_name, cred_amt = creditors[j]
-                    trans_amt = min(deb_amt, cred_amt)
-                    
-                    if trans_amt >= 1:
-                        settlements.append(f"👉 **{deb_name}** 轉帳給 **{cred_name}**：`{trans_amt:,}` 元")
-                        line_messages.append(f"• {deb_name} 轉帳給 {cred_name}：${trans_amt:,} 元")
-                    
-                    debtors[i][1] -= trans_amt
-                    creditors[j][1] -= trans_amt
-                    
-                    if debtors[i][1] == 0:
-                        i += 1
-                    if creditors[j][1] == 0:
-                        j += 1
+            if settlements:
+                for s in settlements:
+                    st.info(s)
+                
+                st.divider()
+                st.markdown("**📋 LINE 群組催款懶人包** (點擊右上角直接複製)")
+                share_text = f"✈️【{trip_name}】費用結算清單\n全團總累積花費：${total_trip_expense:,} 元\n" + "-"*20 + "\n"
+                share_text += "\n".join(line_messages)
+                share_text += "\n" + "-"*20 + "\n大家確認無誤後即可直接轉帳結清囉！"
+                st.code(share_text, language="text")
+            else:
+                st.success("🎉 目前帳目完全平衡，大家互不相欠！")
 
-                if settlements:
-                    for s in settlements:
-                        st.info(s)
-                    
-                    st.divider()
-                    st.markdown("**📋 LINE 群組催款懶人包**")
-                    share_text = f"✈️【{trip_name}】費用結算清單\n全團總累積花費：${total_trip_expense:,} 元\n" + "-"*20 + "\n"
-                    share_text += "\n".join(line_messages)
-                    share_text += "\n" + "-"*20 + "\n大家確認無誤後即可直接轉帳結清囉！"
-                    st.code(share_text, language="text")
-                else:
-                    st.success("🎉 目前帳目完全平衡，大家互不相欠！")
-
-# 【核心效能優化】：只在共同旅遊分帳運作時進行 30 秒靜默同步，絕不阻塞大廳與個人記帳
+# 【核心效能】：只在共同分帳頁面執行 30 秒自動同步，大廳與個人記帳 0 毫秒極速反應
 time.sleep(30)
 st.rerun()
