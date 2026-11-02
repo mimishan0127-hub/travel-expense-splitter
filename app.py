@@ -21,7 +21,7 @@ st.set_page_config(
 
 # ==================== 5 種現代高奢配色主題 ====================
 THEMES = {
-    "🌿 青嵐鼠尾草": {
+    "🌿 活潑青蘋鼠尾草": {
         "primary": "#2D6A4F",
         "primary_dark": "#1B4332",
         "gradient": "linear-gradient(135deg, #2D6A4F 0%, #40916C 100%)",
@@ -32,7 +32,7 @@ THEMES = {
         "glow": "rgba(45, 106, 79, 0.22)",
         "badge": "#D8F3DC"
     },
-    "🍂 赤曜暖陶": {
+    "🍂 暖陽落日焦糖": {
         "primary": "#C84B31",
         "primary_dark": "#8F2D18",
         "gradient": "linear-gradient(135deg, #C84B31 0%, #E26D5C 100%)",
@@ -43,7 +43,7 @@ THEMES = {
         "glow": "rgba(200, 75, 49, 0.22)",
         "badge": "#FCD5CE"
     },
-    "🌊 暮靄深海藍": {
+    "🌊 晴空湛藍暮靄": {
         "primary": "#1E5F74",
         "primary_dark": "#133B49",
         "gradient": "linear-gradient(135deg, #1E5F74 0%, #2D82B7 100%)",
@@ -54,7 +54,7 @@ THEMES = {
         "glow": "rgba(30, 95, 116, 0.22)",
         "badge": "#CCE8F0"
     },
-    "🌸 暮光煙粉": {
+    "🌸 甜美蜜桃煙粉": {
         "primary": "#A24857",
         "primary_dark": "#6D2935",
         "gradient": "linear-gradient(135deg, #A24857 0%, #C76B7C 100%)",
@@ -65,7 +65,7 @@ THEMES = {
         "glow": "rgba(162, 72, 87, 0.22)",
         "badge": "#F8D4DC"
     },
-    "🌑 黑曜玄武岩": {
+    "🌑 俐落玄武晶石": {
         "primary": "#2B2D42",
         "primary_dark": "#181926",
         "gradient": "linear-gradient(135deg, #2B2D42 0%, #474A6B 100%)",
@@ -78,15 +78,16 @@ THEMES = {
     }
 }
 
-if "theme_name" not in st.session_state:
-    st.session_state["theme_name"] = "🌿 青嵐鼠尾草"
+# 【核心防護】：安全讀取主題，若舊版本暫存名稱不匹配則自動重設，100% 杜絕 KeyError
+theme_keys = list(THEMES.keys())
+if "theme_name" not in st.session_state or st.session_state["theme_name"] not in THEMES:
+    st.session_state["theme_name"] = theme_keys[0]
 
 current_theme = THEMES[st.session_state["theme_name"]]
 
 # ==================== 行動端頂級美學 CSS 注入 ====================
 st.markdown(f"""
 <style>
-/* 1. 核心字體與全景畫布 */
 html, body, [class*="css"] {{
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang TC", "Noto Sans TC", sans-serif;
     color: #0F172A;
@@ -110,7 +111,6 @@ html, body, [class*="css"] {{
     }}
 }}
 
-/* 2. 移除原生物理厚框線，升級為懸浮白島卡片 */
 div[data-testid="stVerticalBlockBorderWrapper"] {{
     border-radius: 20px !important;
     border: 1px solid rgba(226, 232, 240, 0.8) !important;
@@ -121,7 +121,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {{
     transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }}
 
-/* 3. 仿 iOS 錢包的懸浮膠囊分頁籤 (Segmented Bar) */
 div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
     background: #E2E8F0 !important;
     padding: 4px !important;
@@ -151,7 +150,6 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
     display: none !important;
 }}
 
-/* 4. 手機專屬 Hero 看板卡片 */
 .hero-card {{
     background: {current_theme['hero_bg']};
     color: #FFFFFF;
@@ -199,7 +197,6 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
     font-weight: 600;
 }}
 
-/* 5. 交易流水卡片 (Transaction Item Card) */
 .tx-item {{
     display: flex;
     align-items: center;
@@ -258,7 +255,6 @@ div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
     flex-shrink: 0;
 }}
 
-/* 6. 手機大拇指專用立體大按鈕 */
 html body button[data-testid*="primary"],
 html body button[data-testid="baseButton-primary"],
 html body button[kind="primary"],
@@ -290,7 +286,6 @@ html body button[data-testid="baseButton-secondary"] {{
     min-height: 42px !important;
 }}
 
-/* 7. 表單元件微調 */
 input[type="text"], input[type="password"], input[type="number"] {{
     border-radius: 13px !important;
     border: 1.5px solid #E2E8F0 !important;
@@ -305,7 +300,6 @@ input:focus {{
     box-shadow: 0 0 0 3px {current_theme['glow']} !important;
 }}
 
-/* 8. 柔色選人標籤 */
 div[data-testid="stMultiSelect"] {{
     --primary-color: {current_theme['tag_bg']} !important;
 }}
@@ -461,7 +455,6 @@ def get_personal_categories(book_code, r_type):
     except Exception:
         return []
 
-# 類別圖示對應
 CATEGORY_ICONS = {
     "食物": "🍔", "購物": "🛍️", "家用": "🏠", "交通": "🚗",
     "醫療": "💊", "娛樂": "🎮", "儲蓄": "💰", "保險": "🛡️",
@@ -537,7 +530,7 @@ elif url_book and st.session_state["current_code"] != url_book and st.session_st
 
 
 # ==============================================================================
-# 第一層：身分認證（現代原生感登入卡）
+# 第一層：身分認證
 # ==============================================================================
 if st.session_state["current_code"] is None and st.session_state["auth_user"] is None:
     st.markdown("""
@@ -599,7 +592,6 @@ if st.session_state["current_code"] is None and st.session_state["auth_user"] is
                         st.toast(f"🎉 註冊成功，{clean_name}！")
                         st.rerun()
 
-    # 快捷邀請碼
     with st.container(border=True):
         st.markdown("**⚡ 手邊有 7 碼邀請碼？（免登入直接進入）**")
         c_quick1, c_quick2 = st.columns([2.4, 1.3])
@@ -617,7 +609,7 @@ if st.session_state["current_code"] is None and st.session_state["auth_user"] is
 
 
 # ==============================================================================
-# 第二層：主揪 / 會員「個人帳本與行程大廳」（卡片清單）
+# 第二層：主揪 / 會員「個人帳本與行程大廳」
 # ==============================================================================
 if st.session_state["current_code"] is None and st.session_state["auth_user"] is not None:
     current_user = st.session_state["auth_user"]
@@ -822,7 +814,6 @@ if st.session_state["current_book_type"] == "personal":
     total_expense = sum(int(round(float(r["amount"]))) for r in p_records if r["record_type"] == "expense")
     net_surplus = total_income - total_expense
 
-    # 頂部行動專屬導航
     col_pb1, col_pb2 = st.columns([3.8, 1.4])
     with col_pb1:
         st.markdown(f"### 📖 {book_name}")
@@ -861,8 +852,10 @@ if st.session_state["current_book_type"] == "personal":
         with st.container(border=True):
             st.markdown("**🎨 介面主題色**")
             def on_theme_change():
-                st.session_state["theme_name"] = st.session_state["theme_selector"]
-            st.selectbox("選擇主題色調：", options=list(THEMES.keys()), index=list(THEMES.keys()).index(st.session_state["theme_name"]), key="theme_selector", on_change=on_theme_change, label_visibility="collapsed")
+                st.session_state["theme_name"] = st.session_state["theme_selector_p"]
+            
+            cur_p_theme = st.session_state["theme_name"] if st.session_state["theme_name"] in theme_keys else theme_keys[0]
+            st.selectbox("選擇主題色調：", options=theme_keys, index=theme_keys.index(cur_p_theme), key="theme_selector_p", on_change=on_theme_change, label_visibility="collapsed")
 
         with st.container(border=True):
             st.markdown("**📖 帳本設定與管理**")
@@ -961,7 +954,6 @@ if st.session_state["current_book_type"] == "personal":
                     st.toast(f"🗑️ 已刪除：{del_ecat_target}")
                     st.rerun()
 
-        # 支出交易流水卡片流
         exp_list = [r for r in p_records if r["record_type"] == "expense"]
         with st.container(border=True):
             st.markdown("##### 📋 支出明細清單")
@@ -1164,7 +1156,7 @@ with col_h2:
                 " />
                 <button id="copyBtn" style="
                     background: {current_theme['gradient']}; color: white; border: none; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%;
-                ">📋 一鍵複製專屬直達網址</button>
+                ">📋 點擊一鍵複製直達網址</button>
                 <div id="copyNotice" style="font-size:12px; color:#16a34a; font-weight:700; display:none; text-align:center; margin-top:2px;">
                     ✅ 專屬網址已複製至剪貼簿！
                 </div>
@@ -1244,8 +1236,10 @@ with st.sidebar:
     with st.container(border=True):
         st.markdown("**🎨 介面主題色**")
         def on_theme_change():
-            st.session_state["theme_name"] = st.session_state["theme_selector"]
-        st.selectbox("選擇主題色調：", options=list(THEMES.keys()), index=list(THEMES.keys()), key="theme_selector", on_change=on_theme_change, label_visibility="collapsed")
+            st.session_state["theme_name"] = st.session_state["theme_selector_g"]
+        
+        cur_g_theme = st.session_state["theme_name"] if st.session_state["theme_name"] in theme_keys else theme_keys[0]
+        st.selectbox("選擇主題色調：", options=theme_keys, index=theme_keys.index(cur_g_theme), key="theme_selector_g", on_change=on_theme_change, label_visibility="collapsed")
 
     with st.container(border=True):
         st.markdown("**👥 行程成員管理**")
@@ -1333,7 +1327,7 @@ with st.sidebar:
                         st.session_state["confirm_del_group_active"] = False
                         st.rerun()
             else:
-                st.caption("銷毀後無法還原，需驗證管理員密碼。")
+                st.caption("銷毀後無法還原，需驗證 4~6 位管理員密碼。")
                 pin_try = st.text_input("輸入管理員密碼", type="password", key="active_del_g_pin", placeholder="4~6位密碼")
                 if st.button("驗證密碼並前往刪除", type="secondary", use_container_width=True):
                     if not pin_try.strip():
@@ -1355,7 +1349,7 @@ with tab1:
             st.warning("請先在左側選單新增成員！")
         else:
             with st.form("add_expense_form", clear_on_submit=True):
-                item_name = st.text_input("項目名稱", placeholder="例如：晚餐、計程車、門票")
+                item_name = st.text_input("項目名稱", placeholder="例如：第一天晚餐、計程車、門票")
                 amount = st.number_input("金額 (NTD / 結算幣別)", min_value=1, step=50, format="%d")
 
                 c_payer, c_split = st.columns(2)
@@ -1492,7 +1486,6 @@ with tab2:
 
             net_balance = total_paid_by_user - total_consumed_by_user
 
-            # 簡潔小看板
             c_p1, c_p2, c_p3 = st.columns(3)
             with c_p1:
                 st.metric("代墊支出", f"${total_paid_by_user:,}")
